@@ -1,0 +1,10 @@
+alias counter R0;
+alias n R1;
+n = 20;
+counter = 0;
+while (counter <= n) do
+	if(counter % 2 == 0) then
+		print counter;
+	endif;
+	counter = counter + 1;
+endwhile; 

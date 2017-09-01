@@ -1,0 +1,8 @@
+doc/
+Makefile
+apl/*
+!**/apl_progs/
+spl/*
+!spl/spl_progs/
+xfs-interface/
+xsm/

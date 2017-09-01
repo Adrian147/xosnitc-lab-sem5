@@ -1,0 +1,81 @@
+// Loading Exection Handler into memory
+load (7, 1);
+load (8, 2);
+
+// Loading INT 7 from XFS to Memory 
+load (23, 17);
+load (24, 18);
+
+ // Setting PID 0 entry 
+[READY_LIST + 0] = 0;
+
+// Loading the INIT Program Code into Memory
+load(25,21);
+load(26,22); 
+load(27,23);
+
+// Setting Page Table Base and Length Registers
+PTBR = 1024; 
+PTLR = 4;
+
+// Setting up Page Table Entry for PID 0
+[PTBR + 0] = 25;
+[PTBR + 1] = "01";
+[PTBR + 2] = 26;
+[PTBR + 3] = "01"; 
+[PTBR + 4] = 27;
+[PTBR + 5] = "01";
+[PTBR + 6] = 28;
+[PTBR + 7] = "01";
+
+// Changing PID 0 STATE to Running
+[READY_LIST + 1] = 2;
+
+// Setting Stack Pointer to the Logical address to Page 3 i.e. Stack.
+SP = 3 * 512; 
+
+// Setting up the INIT Value in the stack 
+[28 * 512] = 0;
+
+// Loading INT 1 from XFS to Memory 
+load (11, 5);
+load (12, 6);
+
+// Loading Timer INT from XFS to Memory
+load (9, 3);
+load (10, 4);
+
+// Setting PID 1 entry 
+[READY_LIST + 32] = 1;
+
+// Loading the EXEC Program Code into Memory
+load(29,25);
+
+// Setting up an alias for the new process
+alias PTBR_proc1 S0;
+PTBR_proc1 = 1024 + 1 * 8; 
+
+// Setting up Page Table Entry for PID 1
+[PTBR_proc1 + 0] = 29;
+[PTBR_proc1 + 1] = "01";
+[PTBR_proc1 + 2] = -1;
+[PTBR_proc1 + 3] = "00"; 
+[PTBR_proc1 + 4] = -1;
+[PTBR_proc1 + 5] = "00";
+[PTBR_proc1 + 6] = 30;
+[PTBR_proc1 + 7] = "01";
+
+// Changing PID 0 STATE to Ready
+[READY_LIST + 33] = 1;
+
+// Setting PTBR and PTLR
+[READY_LIST + 37] = PTBR_proc1;
+[READY_LIST + 38] = 4;
+
+// Setting BP and SP in PCB and IP
+[READY_LIST + 34] = 3 * 512;
+[READY_LIST + 35] = 3 * 512;
+[READY_LIST + 36] = 0;
+
+// Returning control to the INIT Program
+ireturn; 

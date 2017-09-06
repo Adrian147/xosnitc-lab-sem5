@@ -1,0 +1,115 @@
+//Alias Declaration
+alias physicalSP S0;
+alias sysCallNo S1;
+alias currentPID S2;
+alias currentPCB S3;
+alias fileDesc S4;
+alias wdwrite S5;
+alias ft_entry S6;
+alias l_seek S7;
+alias basic_block S8;
+alias FAT_entry S9;
+alias dat_block S10;
+alias i S11;
+
+// Calculating the Physical SP address
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+
+// Extracting System Call Number
+sysCallNo = [physicalSP - 1];
+
+//Common to both methods
+//Setting the PPOFT in the PCB
+currentPID = (PTBR - 1024) / 8;
+
+// Calculating PCB entry for currentPID
+currentPCB = READY_LIST + 32 * currentPID;
+
+//Write Syscall
+if ( sysCallNo == 5) then
+    fileDesc = [physicalSP - 4];
+    wdwrite = [physicalSP - 3];
+    
+    //Checking if valid fileDesc
+    if (fileDesc < 0 || fileDesc > 7) then
+        [physicalSP - 2] = -1;
+        ireturn;
+    endif;
+    
+    //if the entry does not exist
+    if ([currentPCB + 15 + fileDesc * 2] == -1) then
+	    [physicalSP - 2] = -1;
+        ireturn;
+	endif;
+	
+	ft_entry =  [currentPCB + 15 + fileDesc * 2];
+	l_seek = [currentPCB + 16 + fileDesc * 2];
+	
+	//If the System FT entry is invalid
+    if ([FILE_TABLE + ft_entry * 2] == -1) then
+        [physicalSP - 2] = -1;
+        ireturn;
+    endif;
+    
+    //FAT Entry
+    FAT_entry = [FILE_TABLE + ft_entry * 2];
+    
+    //loading the basic block
+    basic_block = [FAT + 8 * FAT_entry + 2];
+    load(1, basic_block);
+    
+    //Finding the Data block to use
+    i = l_seek/512;
+    
+    //If not found, look for free a free data block
+    if ([SCRATCHPAD + i] == -1) then
+        i = 24;
+        while (i < 448) do
+            if ([DISK_LIST + i] == 0) then
+                break;
+            endif;
+        
+            i = i + 1;
+        endwhile;
+ 
+        //if no free file is found
+        if (i == 448) then 
+            [physicalSP - 2] = -1;
+            ireturn;
+        endif;
+        
+        //Setting occupied
+        dat_block = i;
+        [DISK_LIST + i] = 1;
+        
+        //Adding to the basic block
+        [SCRATCHPAD + l_seek/512] = dat_block;
+        
+        //Incresing file size
+        [FAT + 8 * FAT_entry + 1] = [FAT + 8 * FAT_entry + 1] + 512;
+        
+        //Storing the basic block, FAT and DFL
+        store(1, basic_block);
+        store(5, 19);
+	    store(6, 20);
+    else
+        // If the data block exists
+        dat_block = [SCRATCHPAD + i];
+    endif;
+    
+    //Entering the Data
+    load (1, dat_block);
+    [SCRATCHPAD + l_seek % 512] = wdwrite;
+    store (1, dat_block);
+    
+    //Inc LSEEK
+    [currentPCB + 16 + fileDesc * 2] = [currentPCB + 16 + fileDesc * 2] + 1;
+    
+    //Returning on Success
+    [physicalSP - 2] = 0;
+    ireturn;
+endif;
+
+// if the INT 4 was improperly called
+[physicalSP - 2] = -1;
+ireturn;

@@ -4,4 +4,8 @@ load --int=7 $HOME/myxos/spl/spl_progs/int7.xsm
 load --os $HOME/myxos/spl/spl_progs/os_startup.xsm
 load --int=1 $HOME/myxos/spl/spl_progs/int1.xsm
 load --int=2 $HOME/myxos/spl/spl_progs/int2.xsm
+load --int=4 $HOME/myxos/spl/spl_progs/int4.xsm
 load --init $HOME/myxos/apl/apl_progs/create_syscall.xsm
+
+./spl --int=4 $HOME/myxos/spl/spl_progs/int4_syscall.spl
+./spl --int=3 $HOME/myxos/spl/spl_progs/int3_syscall.spl

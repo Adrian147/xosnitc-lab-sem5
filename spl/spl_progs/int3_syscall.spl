@@ -1,0 +1,102 @@
+//Alias Declaration
+alias physicalSP S0;
+alias sysCallNo S1;
+alias currentPID S2;
+alias currentPCB S3;
+alias fileDesc S4;
+alias n_lseek S5;
+alias ft_entry S6;
+alias FAT_entry S7;
+alias basic_block S8;
+alias l_seek S9;
+alias dat_block S10;
+
+
+// Calculating the Physical SP address
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+
+// Extracting System Call Number
+sysCallNo = [physicalSP - 1];
+
+//Common to both methods irrespective of syscall no.
+//Setting the PPOFT in the PCB
+currentPID = (PTBR - 1024) / 8;
+
+fileDesc = [physicalSP - 4];
+
+// Calculating PCB entry for currentPID
+currentPCB = READY_LIST + 32 * currentPID;
+
+//Checking if valid fileDesc
+if (fileDesc < 0 || fileDesc > 7) then
+    [physicalSP - 2] = -1;
+    ireturn;
+endif;
+    
+//if the entry does not exist
+if ([currentPCB + 15 + fileDesc * 2] == -1) then
+	[physicalSP - 2] = -1;
+    ireturn;
+endif;
+
+ft_entry =  [currentPCB + 15 + fileDesc * 2];
+
+//If the System FT entry is invalid
+if ([FILE_TABLE + ft_entry * 2] == -1) then
+    [physicalSP - 2] = -1;
+    ireturn;
+endif;
+    
+//FAT Entry
+FAT_entry = [FILE_TABLE + ft_entry * 2];
+
+//Seek Syscall
+if ( sysCallNo == 6) then
+    n_lseek = [physicalSP - 3];
+    
+    //Checking if new LSEEK is valid
+    if (n_lseek < 0 || n_lseek > [FAT + 8 * FAT_entry + 1]) then
+        [physicalSP - 2] = 0;
+        ireturn;
+    endif;
+    
+    //Setting new LSEEK
+    [currentPCB + 16 + fileDesc * 2] = n_lseek;
+
+    //Returning on Success
+    [physicalSP - 2] = 0;
+    ireturn;
+endif;
+
+//Write Syscall
+if (sysCallNo == 7) then
+    l_seek = [currentPCB + 16 + fileDesc * 2];
+    
+    //Checking Lseek Value
+    if (l_seek >= [FAT + 8 * FAT_entry + 1]) then
+        [physicalSP - 2] = -1;
+        ireturn;
+    endif;
+    
+    //loading the basic block
+    basic_block = [FAT + 8 * FAT_entry + 2];
+    load(1, basic_block);
+    
+    //Reading from the data block
+    dat_block = [SCRATCHPAD + l_seek/512];
+    load(1, dat_block);
+    
+    //Reading value
+    [physicalSP - 3] = [SCRATCHPAD + l_seek % 512];
+    
+    //Inc LSEEK
+    [currentPCB + 16 + fileDesc * 2] = [currentPCB + 16 + fileDesc * 2] + 1;
+    
+    //Returning on Success
+    [physicalSP - 2] = 0;
+    ireturn;
+endif;
+
+// if the INT 3 was improperly called
+[physicalSP - 2] = -1;
+ireturn;

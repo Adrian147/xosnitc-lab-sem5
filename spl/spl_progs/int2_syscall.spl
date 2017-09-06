@@ -6,6 +6,15 @@ physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 alias sysCallNo S1;
 sysCallNo = [physicalSP - 1];
 
+//Common to both methods
+//Setting the PPOFT in the PCB
+alias currentPID S7;
+currentPID = (PTBR - 1024) / 8;
+
+// Calculating PCB entry for currentPID
+alias currentPCB S8;
+currentPCB = READY_LIST + 32 * currentPID;
+
 //Open Syscall
 if ( sysCallNo == 2) then
 	alias fileName S3;
@@ -65,16 +74,8 @@ if ( sysCallNo == 2) then
 	endif;
 	
 	ft_entry = i;
-	
-	//Setting the PPOFT in the PCB
-	alias currentPID S0;
-    currentPID = (PTBR - 1024) / 8;
-
-    // Calculating PCB entry for currentPID
-    alias currentPCB S1;
-    currentPCB = READY_LIST + 32 * currentPID;
     
-    //Looking for a free entry
+    //Looking for a free entry in PPOFT
     i = 0;
     while (i < 8) then
         if ([currentPCB + 15 + i * 2] == -1) then
@@ -104,13 +105,43 @@ endif;
 
 //Close Syscall
 if ( sysCallNo == 3) then
-	alias fileName S3;
-	fileName = [physicalSP - 3];
+	alias fileDesc S3;
+	fileDesc = [physicalSP - 3];
+
+    //Checking if valid fileDesc
+    if (fileDesc < 0 || fileDesc > 7) then
+        [physicalSP - 2] = -1;
+        ireturn;
+    endif;
 	
+	//Looking though PPOFT for for File Table Entry
 	
+	// if entry is invalid
+	if ([currentPCB + 15 + fileDesc * 2] == -1) then
+	    [physicalSP - 2] = -1;
+        ireturn;
+	endif;
+	
+	alias ft_entry S6;
+	ft_entry =  [currentPCB + 15 + fileDesc * 2];
+	
+	//Modifying the File Table on close.
+	//Decrementing the count value
+	[FILE_TABLE + ft_entry * 2 + 1] = [FILE_TABLE + ft_entry * 2 + 1] - 1;
+	 
+	//Invalidating the File Table entry if not processes are using it.
+	if ([FILE_TABLE + ft_entry * 2 + 1] == 0) then
+	    [FILE_TABLE + ft_entry * 2] = -1;
+	endif;
+	
+	//Invalidating the PPOFT entry
+	[currentPCB + 15 + fileDesc * 2] = -1;
+	[currentPCB + 16 + fileDesc * 2]
+	
+	//Returning 0 for success
+    [physicalSP - 2] = 0;
+    ireturn;
 endif;
 
-
-// Setting -1 since other sys calls haven't been implemented yet
 [physicalSP - 2] = -1;
 ireturn;

@@ -132,12 +132,37 @@ if ( sysCallNo == 4) then
 	
 	// Loading Basic Block to Scratchpad
 	alias basic_block S6;
-	basic_block = [FAT + FAT_entry + 2]
+	basic_block = [FAT + 8 * FAT_entry + 2]
     load (1, basic_block);
     
     //Find out the number of data blocks possible first 
     //    Once done, Invalidate each data block with ""
     //    Invalidate each DFL entry for each data block
+	alias j S7;
+	alias dat_block S8;
+	j = 0;
+	
+	
+	while (j < 256) do
+	    dat_block = [SCRATCHPAD + j];
+	    
+	    // Loading the Data block to the scratchpad
+	    load (1, dat_block);
+	    i = 0;
+	    while (i < 512) do
+	        [SCRATCHPAD + i] = "";
+	    
+	        i = i + 1;
+	    endwhile;
+	    
+	    //Invalidating Block and DFL entry 
+	    store (1, dat_block);
+	    [DISK_LIST + dat_block] = 0;
+	    
+	    load (1, basic_block);
+	    j = j + 1;
+	endwhile;
+	
 	
 	//Invalidate the basic block
 	i = 0;

@@ -6,4 +6,5 @@ spl/*
 !spl/spl_progs/
 xfs-interface/
 xsm/
+*.xsm
 *~

@@ -132,8 +132,8 @@ if ( sysCallNo == 4) then
 	
 	// Loading Basic Block to Scratchpad
 	alias basic_block S6;
-	basic_block = [FAT + 8 * FAT_entry + 2]
-    load (1, basic_block);
+	basic_block = [FAT + 8 * FAT_entry + 2];
+    load(1, basic_block);
     
     //Find out the number of data blocks possible first 
     //    Once done, Invalidate each data block with ""
@@ -145,6 +145,12 @@ if ( sysCallNo == 4) then
 	
 	while (j < 256) do
 	    dat_block = [SCRATCHPAD + j];
+	    
+	    //moving out from -1 data block entries
+	    if(dat_block == -1) then
+	        j = j + 1;
+	        continue;
+	    endif;
 	    
 	    // Loading the Data block to the scratchpad
 	    load (1, dat_block);

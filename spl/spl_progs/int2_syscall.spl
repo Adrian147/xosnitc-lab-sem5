@@ -77,7 +77,7 @@ if ( sysCallNo == 2) then
     
     //Looking for a free entry in PPOFT
     i = 0;
-    while (i < 8) then
+    while (i < 8) do
         if ([currentPCB + 15 + i * 2] == -1) then
             break;
         endif;
@@ -136,7 +136,7 @@ if ( sysCallNo == 3) then
 	
 	//Invalidating the PPOFT entry
 	[currentPCB + 15 + fileDesc * 2] = -1;
-	[currentPCB + 16 + fileDesc * 2]
+	[currentPCB + 16 + fileDesc * 2] = -1;
 	
 	//Returning 0 for success
     [physicalSP - 2] = 0;

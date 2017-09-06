@@ -1,0 +1,116 @@
+// Calculating the Physical SP address
+alias physicalSP S0;
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+
+// Extracting System Call Number
+alias sysCallNo S1;
+sysCallNo = [physicalSP - 1];
+
+//Open Syscall
+if ( sysCallNo == 2) then
+	alias fileName S3;
+	fileName = [physicalSP - 3];
+	
+	//checking FAT for the filename
+	alias i S4;
+	i = 0;
+	while (i < 64) do
+        if ([FAT + 8 * i] == fileName) then
+           //Condition met if filename is found in FAT
+           break;
+        endif;
+        
+        i = i + 1;
+    endwhile;
+    
+    //if file doesn't exist
+    if (i == 64) then
+	    [physicalSP - 2] = -1;
+	    ireturn;
+    endif;
+    
+    alias FAT_entry S5;
+	FAT_entry = i;
+	
+	//Searching System Wide Open File Table for the FAT entry
+	i = 0;
+	while (i < 64) do
+	    if ([FILE_TABLE + i * 2] == FAT_entry) then
+	        break;
+	    endif;
+	    i = i + 1;
+	endwhile;
+	
+	//if found, saving the entry
+	alias ft_entry S6;
+	if (i != 64) then
+	    ft_entry = i;
+	endif;
+	
+	//else, searching for a free entry
+	if (i == 64) then
+	    i = 0;
+	    while (i < 64) do
+	        if ([FILE_TABLE + i * 2] == -1) then
+	            break;
+	        endif;
+	        i = i + 1;
+	    endwhile; 
+	endif;
+	
+	//If no free entry available
+	if (i == 64) then
+	    [physicalSP - 2] = -1;
+        ireturn;
+	endif;
+	
+	ft_entry = i;
+	
+	//Setting the PPOFT in the PCB
+	alias currentPID S0;
+    currentPID = (PTBR - 1024) / 8;
+
+    // Calculating PCB entry for currentPID
+    alias currentPCB S1;
+    currentPCB = READY_LIST + 32 * currentPID;
+    
+    //Looking for a free entry
+    i = 0;
+    while (i < 8) then
+        if ([currentPCB + 15 + i * 2] == -1) then
+            break;
+        endif;
+        i = i + 1;
+    endwhile;
+    
+    // If No free entries    
+    if (i == 8) then
+        [physicalSP - 2] = -1;
+        ireturn;
+    endif;
+    
+    //Setting File Table Entry in the Perprocess Table
+    [currentPCB + 15 + i * 2] = ft_entry;
+    [currentPCB + 16 + i * 2] = 0;
+    
+    //Setting the File Table Entry
+    [FILE_TABLE + ft_entry * 2] = FAT_entry;
+    [FILE_TABLE + ft_entry * 2 + 1] = [FILE_TABLE + ft_entry * 2 + 1] + 1;
+    
+    //Returning the PPOFT entry
+    [physicalSP - 2] = i;
+    ireturn;
+endif;
+
+//Close Syscall
+if ( sysCallNo == 3) then
+	alias fileName S3;
+	fileName = [physicalSP - 3];
+	
+	
+endif;
+
+
+// Setting -1 since other sys calls haven't been implemented yet
+[physicalSP - 2] = -1;
+ireturn;

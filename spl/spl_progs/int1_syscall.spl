@@ -6,18 +6,16 @@ physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 alias sysCallNo S1;
 sysCallNo = [physicalSP - 1];
 
-//Identifying the System call
+//Create Syscall
 if ( sysCallNo == 1) then
-	//Create syscall
 	alias fileName S3;
 	fileName = [physicalSP - 3];
 	
-	//checking FAT for the filename #need to test
+	//checking FAT for the filename
 	alias i S4;
 	i = 0;
 	while (i < 64) do
         if ([FAT + 8 * i] == fileName) then
-            //modify
             [physicalSP - 2] = 0;
             ireturn;
         endif;
@@ -94,7 +92,79 @@ if ( sysCallNo == 1) then
 	// Return
 	[physicalSP - 2] = 0;
 	ireturn;
+endif;
+
+//The Delete System Call
+if ( sysCallNo == 4) then
+    alias fileName S3;
+	fileName = [physicalSP - 3];
 	
+	//checking FAT for the filename
+	alias i S4;
+	i = 0;
+	while (i < 64) do
+        if ([FAT + 8 * i] == fileName) then
+           //Condition met if filename is found in FAT
+           break;
+        endif;
+        
+        i = i + 1;
+    endwhile;
+    
+    //if file doesn't exist
+    if (i == 64) then
+	    [physicalSP - 2] = -1;
+	    ireturn;
+    endif;
+    
+    alias FAT_entry S5;
+	FAT_entry = i;
+	
+	//Looking through the System Wide Open File Table
+	i = 0;
+	while (i < 64) do
+	    if ([FILE_TABLE + i * 2] == FAT_entry) then
+	        [physicalSP - 2] = -1;
+	        ireturn;
+	    endif;
+	    i = i + 1;
+	endwhile;
+	
+	// Loading Basic Block to Scratchpad
+	alias basic_block S6;
+	basic_block = [FAT + FAT_entry + 2]
+    load (1, basic_block);
+    
+    //Find out the number of data blocks possible first 
+    //    Once done, Invalidate each data block with ""
+    //    Invalidate each DFL entry for each data block
+	
+	//Invalidate the basic block
+	i = 0;
+	while (i < 512) do
+	    [SCRATCHPAD + i] = "";
+	    
+	    i = i + 1;
+	endwhile;
+    
+    //Storing the basic block back
+	store (1, basic_block);
+	
+	//Invalidating Basic Entry in DFL
+	[DISK_LIST + basic_block] = 0;
+	
+	//Invalidating FAT entry
+	[FAT + 8 * FAT_entry + 0] = -1;
+    [FAT + 8 * FAT_entry + 1] =  0;
+    [FAT + 8 * FAT_entry + 2] = -1;
+    
+    //Saving DFL and FAT
+    store(5, 19);
+	store(6, 20);
+	
+	// Return
+	[physicalSP - 2] = 0;
+	ireturn;
 endif;
 
 // Setting -1 since other sys calls haven't been implemented yet

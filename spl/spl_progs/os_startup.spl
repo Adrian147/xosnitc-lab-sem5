@@ -6,7 +6,7 @@ load (8, 2);
 load (23, 17);
 load (24, 18);
 
- // Setting PID 0 entry 
+// Setting PID 0 entry 
 [READY_LIST + 0] = 0;
 
 // Loading the INIT Program Code into Memory
@@ -65,9 +65,21 @@ load (16, 10);
 load (17, 11);
 load (18, 12);
 
+// INT 5
+load (19, 13);
+load (20, 14);
+
+// INT 6
+load (21, 15);
+load (22, 16);
+
+// INT 7
+load (23, 17);
+load (24, 18);
+
 // Loading Timer INT from XFS to Memory
-// load (9, 3);
-// load (10, 4);
+load (9, 3);
+load (10, 4);
 
 // Loading the FAT and Disk Free List into the Memory
 load (5, 19);
@@ -81,6 +93,31 @@ while (i < 64) do
     [FILE_TABLE + i * 2] = -1;
     //Invalidating File Open Count
     [FILE_TABLE + i * 2 + 1] = 0;
+    
+    i = i + 1;
+endwhile;
+
+//Invalidating Non-Reserved Memory Page blocks
+i = 25;
+
+while (i < 64) do
+    //Invalidating Index to FAT Table
+    [MEM_LIST + i] = 0;
+    
+    i = i + 1;
+endwhile;
+
+//Setting INIT Page Values in Memory Free 
+[MEM_LIST + 25] = 1;
+[MEM_LIST + 26] = 1;
+[MEM_LIST + 27] = 1;
+[MEM_LIST + 28] = 1;
+
+//Invalidate all other PCB entries with STATE 0
+i = 1;
+
+while (i < 32) then
+    [READY_LIST + i * 32 + 1] = 0;
     
     i = i + 1;
 endwhile;

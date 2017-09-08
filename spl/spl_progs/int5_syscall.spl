@@ -1,0 +1,143 @@
+//Alias Declaration
+alias physicalSP S0;
+alias sysCallNo S1;
+alias currentPID S2;
+alias currentPCB S3;
+alias newPID S4;
+alias newPCB S5;
+alias i S6;
+alias newPTBR S7;
+alias j S8;
+
+// Calculating the Physical SP address
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+
+// Extracting System Call Number
+sysCallNo = [physicalSP - 1];
+
+//Common to both methods irrespective of syscall no.
+//Setting the PPOFT in the PCB
+currentPID = (PTBR - 1024) / 8;
+
+// Calculating PCB entry for currentPID
+currentPCB = READY_LIST + 32 * currentPID;
+
+//Seek Syscall
+if (sysCallNo == 8) then
+    //looking for a Free PCB
+    newPID = (currentPID + 1) % 32; 
+    
+    while (newPID != currentPID) do
+        newPCB = READY_LIST + 32 * newPID;
+        if [newPCB + 1] == 0 then
+            break;
+        else 
+            newPID = (newPID + 1) % 32;
+        endif;
+    endwhile;
+    
+    if (newPID == currentPID) then
+        // If not free PCB present
+        [physicalSP - 2] = -1;
+        ireturn;
+    endif;
+    
+    //Setting PID in the PCB
+    [newPCB] = newPID;
+    
+    
+    //Setting the newPTBR value
+    newPTBR = PAGE_TABLE + 8 * newPID;
+    
+    //Counting the number of free pages required
+    i = 0;
+    j = 0;
+    while (i < 4) do
+        if ([PTBR + i * 2] != -1) then
+            j = j + 1;
+        endif;
+        i = i + 1;
+    endwhile;
+    
+    //Looking for the free pages
+    i = 25;
+
+    while (i < 64 && j != 0) do
+        //Invalidating Index to FAT Table
+        if ([MEM_LIST + i] == 0) then
+            j = j - 1;
+        endif;
+        i = i + 1;
+    endwhile;
+    
+    //If adiquate free pages are not available
+    if (j != 0) then
+        [physicalSP - 2] = -1;
+        ireturn;
+    endif
+    
+    //Performing Page Duplication
+    i = 0;
+    while (i < 4) do
+        //If the Page is not being used
+        if ([PTBR + i * 2] == -1) then
+            [newPTBR + i * 2] = [PTBR + i * 2];
+        else
+            //Looking for vacant Memory Block
+            j = 25;
+
+            while (j < 64) do
+                if ([MEM_LIST + j] == 0) then
+                    break;
+                endif;
+                j = j + 1;
+            endwhile;
+            
+            //if no page is available
+            if (j == 64) then
+                [physicalSP - 2] = -1;
+                ireturn;
+            endif;
+            
+            //Using the page
+            [MEM_LIST + j] = 1; 
+            
+            //Setting the physical page index for child
+            [newPTBR + i * 2] = j;
+            
+            //Copying data from Parent to Child Pages
+            j = 0;
+            while (j < 512) do
+                 [[newPTBR + i * 2] * 512 + j] = [[PTBR + i * 2] * 512 + j];
+                j = j + 1;
+            endwhile;
+        endif;
+        //copying auxillary information
+        [newPTBR + i * 2 + 1] = [PTBR + i * 2 + 1];
+        i = i + 1;
+    endwhile;
+    
+    //Setting PTBR, IP and SP
+    [newPCB + 5] = newPTBR;
+    
+    //!!!!!!!!!!!!!!!!!!!!!!
+    
+    //Setting other registers
+    [newPCB + 2] = BP;
+    [newPCB + 6] = PTLR;
+    [newPCB +  7] = R0;
+    [newPCB +  8] = R1;
+    [newPCB +  9] = R2;
+    [newPCB + 10] = R3;
+    [newPCB + 11] = R4;
+    [newPCB + 12] = R5;
+    [newPCB + 13] = R6;
+    [newPCB + 14] = R7;
+    
+    //Returning on Success
+    [physicalSP - 2] = newPID;
+    ireturn;
+endif;
+// if the INT 3 was improperly called
+[physicalSP - 2] = -1;
+ireturn;

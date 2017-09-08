@@ -56,7 +56,7 @@ if ( sysCallNo == 6) then
     
     //Checking if new LSEEK is valid
     if (n_lseek < 0 || n_lseek > [FAT + 8 * FAT_entry + 1]) then
-        [physicalSP - 2] = 0;
+        [physicalSP - 2] = -1;
         ireturn;
     endif;
     
@@ -68,7 +68,7 @@ if ( sysCallNo == 6) then
     ireturn;
 endif;
 
-//Write Syscall
+//Read Syscall
 if (sysCallNo == 7) then
     l_seek = [currentPCB + 16 + fileDesc * 2];
     

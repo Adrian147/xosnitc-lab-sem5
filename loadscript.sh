@@ -22,3 +22,8 @@ load --init $HOME/myxos/apl/apl_progs/syscall.xsm
 ./apl $HOME/myxos/apl/apl_progs/seek_err_syscall.apl
 ./apl $HOME/myxos/apl/apl_progs/RW_syscall.apl
 ./apl $HOME/myxos/apl/apl_progs/syscall.apl
+
+#Week 9
+./apl $HOME/myxos/apl/apl_progs/fork_syscall.apl
+
+load --init $HOME/myxos/apl/apl_progs/fork_syscall.xsm

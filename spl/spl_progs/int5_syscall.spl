@@ -8,6 +8,7 @@ alias newPCB S5;
 alias i S6;
 alias newPTBR S7;
 alias j S8;
+alias childPSP S9;
 
 // Calculating the Physical SP address
 physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
@@ -22,7 +23,7 @@ currentPID = (PTBR - 1024) / 8;
 // Calculating PCB entry for currentPID
 currentPCB = READY_LIST + 32 * currentPID;
 
-//Seek Syscall
+//Fork Syscall
 if (sysCallNo == 8) then
     //looking for a Free PCB
     newPID = (currentPID + 1) % 32; 
@@ -44,7 +45,6 @@ if (sysCallNo == 8) then
     
     //Setting PID in the PCB
     [newPCB] = newPID;
-    
     
     //Setting the newPTBR value
     newPTBR = PAGE_TABLE + 8 * newPID;
@@ -99,7 +99,7 @@ if (sysCallNo == 8) then
                 ireturn;
             endif;
             
-            //Using the page
+            //Using the Page in the Memory Free Block
             [MEM_LIST + j] = 1; 
             
             //Setting the physical page index for child
@@ -119,8 +119,8 @@ if (sysCallNo == 8) then
     
     //Setting PTBR, IP and SP
     [newPCB + 5] = newPTBR;
-    
-    //!!!!!!!!!!!!!!!!!!!!!!
+    [newPCB + 4] = [physicalSP - 0];
+    [newPCB + 3] = SP - 1;
     
     //Setting other registers
     [newPCB + 2] = BP;
@@ -134,10 +134,35 @@ if (sysCallNo == 8) then
     [newPCB + 13] = R6;
     [newPCB + 14] = R7;
     
-    //Returning on Success
+    //Copying the PPOFT
+    i = 0;
+    
+    while (i < 8) do
+        [newPCB + 15 + i * 2] = [currentPCB + 15 + i * 2];
+        [newPCB + 16 + i * 2] = [currentPCB + 16 + i * 2];
+        
+        //Incrementing the System Wide File Counter
+        [FILE_TABLE + [newPCB + 15 + i * 2] * 2 + 1] = [FILE_TABLE + [newPCB + 15 + i * 2] * 2 + 1] + 1;
+        
+        i = i + 1;
+    endwhile;
+    
+    //Setting Child to READY
+    [newPCB + 1] = 1;
+    
+    //Calculating the Child SP address
+    childPSP = ([newPTBR + 2 * ((SP - 1) / 512)] * 512) + ((SP - 1) % 512);
+    
+    //Returning on Success for Parent
     [physicalSP - 2] = newPID;
+    
+    //Setting Return Value for Child Process
+    [physicalSP - 1] = -2;
+    
+    //Returning the Parent Program
     ireturn;
 endif;
+
 // if the INT 3 was improperly called
 [physicalSP - 2] = -1;
 ireturn;

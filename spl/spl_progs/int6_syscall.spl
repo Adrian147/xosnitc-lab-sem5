@@ -1,0 +1,96 @@
+//Alias Declaration
+alias sysCallNo S0;
+alias fileName S1;
+alias i S2;
+alias FAT_entry S3;
+alias j S4;
+alias basic_block S5;
+
+
+alias physicalSP S0;
+alias sysCallNo S1;
+alias fileName S2;
+alias currentPID S2;
+alias currentPCB S3;
+alias newPID S4;
+alias newPCB S5;
+alias i S6;
+alias newPTBR S7;
+alias j S8;
+alias childPSP S9;
+
+// Extracting System Call Number
+sysCallNo = [physicalSP - 1];
+
+//Exec Syscall
+if (sysCallNo == 9) then
+    fileName = [physicalSP - 3];
+    
+    //checking FAT for the filename
+	i = 0;
+	while (i < 64) do
+        if ([FAT + 8 * i] == fileName) then
+           //Condition met if filename is found in FAT
+           break;
+        endif;
+        
+        i = i + 1;
+    endwhile;
+    
+    //if file is not exist
+    if (i == 64) then
+	    [physicalSP - 2] = -1;
+	    ireturn;
+    endif;
+    
+    //Saving the FAT entry
+	FAT_entry = i;
+	
+	//Counting the number of used data blocks in the EXEC file
+	basic_block =  [FAT + 8 * FAT_entry + 2];
+	load (1, basic_block);	
+	j = 0;
+	i = 0;
+	
+	while (j < 256) do
+	    if ([SCRATCHPAD + j] != -1) then
+	        i = i + 1;
+	        //Break on -1?
+	    endif;
+	    j = j + 1;
+	endwhile;
+	
+	//Programs can only have 3 code blocks in XOS
+	if (i > 3) then
+	    [physicalSP - 2] = -1;
+    ireturn;
+	endif;
+	
+	//Checking if Adequate Page Blocks used in current process
+    j = 0;
+    
+    //!!!!PAGE BLOCK NOT FILE TABLE 
+    
+    while (j < 8) do
+        if ([currentPCB + 15 + j * 2] != -1) then
+            i = i - 1;
+        endif;
+        j = j + 1;
+    endwhile;
+    
+    //checking lesser blocks are going to be used.
+    if (i > 0) then
+        
+        j = 8;
+        while (i > 0) do
+            if ()
+            
+            j = j - 1;
+            i = i - 1;
+        endwhile;
+    endif;
+endif;
+
+// if the INT 6 was improperly called
+[physicalSP - 2] = -1;
+ireturn;

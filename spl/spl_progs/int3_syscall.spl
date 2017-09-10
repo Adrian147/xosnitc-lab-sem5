@@ -19,7 +19,7 @@ physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 sysCallNo = [physicalSP - 1];
 
 //Common to both methods irrespective of syscall no.
-//Setting the PPOFT in the PCB
+//Setting the PID in the PCB
 currentPID = (PTBR - 1024) / 8;
 
 fileDesc = [physicalSP - 4];

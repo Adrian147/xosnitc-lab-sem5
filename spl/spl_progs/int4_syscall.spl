@@ -80,7 +80,7 @@ if ( sysCallNo == 5) then
         
         //Setting occupied
         dat_block = i;
-        [DISK_LIST + i] = 1;
+        [DISK_LIST + dat_block] = 1;
         
         //Adding to the basic block
         [SCRATCHPAD + l_seek/512] = dat_block;

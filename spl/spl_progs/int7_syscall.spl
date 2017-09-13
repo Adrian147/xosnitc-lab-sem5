@@ -1,0 +1,110 @@
+// Alias definitions
+alias newphysicalSP S0;
+alias sysCallNo S1;
+alias currentPID S2;
+alias currentPCB S3;
+alias newPID S4;
+alias newPCB S5;
+alias i S6;
+alias j S7;
+//Physical SP value
+newphysicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512); 
+
+//Obtaining syscall number
+sysCallNo = [physicalSP - 1];
+
+//If Exit() was call unintentionally
+if (sysCallNo != 10) then
+    [physicalSP - 2] = -1;
+    ireturn;
+endif;
+
+// Calculating PID
+currentPID = (PTBR - 1024) / 8;
+
+// Calculating PCB entry for currentPID
+currentPCB = READY_LIST + 32 * currentPID;
+
+// Looking to the next available process
+newPID = currentPID + 1;
+
+while 1 do
+    newPCB = READY_LIST + 32 * newPID;
+    if [newPCB + 1] == 1 then
+        break;
+    else 
+        newPID = (newPID + 1) % 32;
+        if newPID == currentPID then
+            halt;
+        endif;
+    endif;
+endwhile;
+
+//Closing all Files
+i = 0;
+while (i < 8) do
+    j = currentPCB + 15 + i * 2;
+    if([j] != -1) then
+        //Reducing System Wide file Table Count
+        [FILE_TABLE + j * 2 + 1] = [FILE_TABLE + j * 2 + 1] - 1;
+            
+        //Invalidating entry if not in use
+        if ([FILE_TABLE + j * 2 + 1] == 0) then
+	        [FILE_TABLE + j * 2] = -1;
+	    endif;
+	        
+	    //Invalidating the PPOFT entry
+	    [j] = -1;
+	    [j + 1] = -1;
+    endif;
+    i++;
+endwhile;
+
+//Setting State to terminated
+[currentPCB + 1] = 0;
+
+//Invalidating Page Table entries and MFL entries
+i = 0;
+while (i < 4) then
+    j = PTBR + 2 * i;
+    if ([j] != -1) then
+        //Invalidating MFL
+        [MEM_LIST + j]  = 0;
+        
+        //Invalidating the PPPT entry
+        [j] = -1;
+        [j + 1] = "00";
+    endif;
+    i = i + 1;
+endwhile;
+
+//Loading Registers from the PCB
+//Settign BP, SP from PCB entry
+BP = [newPCB + 2];
+SP = [newPCB + 3];
+
+// Setting Page Table Base and Length Registers
+PTBR = [newPCB + 5]; 
+PTLR = [newPCB + 6];
+
+// Setting Program Registers
+R0 = [newPCB +  7];
+R1 = [newPCB +  8];
+R2 = [newPCB +  9];
+R3 = [newPCB + 10];
+R4 = [newPCB + 11];
+R5 = [newPCB + 12];
+R6 = [newPCB + 13];
+R7 = [newPCB + 14];
+
+// Setting IP into top of SP stack
+SP = SP + 1;
+
+newphysicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+[newphysicalSP] = [newPCB + 4];
+
+// Set STATE for newPID to Running
+[newPCB + 1] = 2;
+
+// Returning control to current process
+ireturn;

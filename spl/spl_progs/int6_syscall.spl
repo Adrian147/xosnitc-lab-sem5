@@ -8,10 +8,21 @@ alias basic_block S5;
 alias code_page S6;
 alias k S7;
 alias noBlocks S8;
+alias physicalSP S9;
+alias currentPID S10;
+alias currentPCB S11;
+
+//Calculating Physical SP value
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+
+//Get current PID
+currentPID = (PTBR - 1024) / 8;
+
+//Current PCB value
+currentPCB = READY_LIST + 32 * currentPID;
 
 // Extracting System Call Number
 sysCallNo = [physicalSP - 1];
-
 
 //Exec Syscall
 if (sysCallNo == 9) then
@@ -114,6 +125,7 @@ if (sysCallNo == 9) then
                 ireturn;
             endif;
             
+            //!! I guess it's memory disk
             [DISK_LIST + j] = 1;
             
             //Adding this page to the process table
@@ -148,13 +160,37 @@ if (sysCallNo == 9) then
         i = i + 1;
     endwhile;
     
-    //!!!!!!!!!!!!!!!Closing all files
+    //Closing all files
+    i = 0;
+    while (i < 8) do
+        j = currentPCB + 15 + i * 2;
+        if([j] != -1) then
+            //Reducing System Wide file Table Count
+            [FILE_TABLE + j * 2 + 1] = [FILE_TABLE + j * 2 + 1] - 1;
+            
+            //Invalidating entry if not in use
+            if ([FILE_TABLE + j * 2 + 1] == 0) then
+	            [FILE_TABLE + j * 2] = -1;
+	        endif;
+	        
+	        //Invalidating the PPOFT entry
+	        [j] = -1;
+	        [j + 1] = -1;
+        endif;
+        i++;
+    endwhile;
     
     //Setting Logical SP to start of page 3
     SP = 3 * 512;
     
-    //Calculating new physical SP value and setting IP
+    //Updating SP Value
+    physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
     
+    //Setting IP value to 0
+    [physicalSP] = 0;
+    
+    // returning to the loaded program
+    ireturn;
 endif;
 
 // if the INT 6 was improperly called

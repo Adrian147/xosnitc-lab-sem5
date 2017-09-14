@@ -1,4 +1,3 @@
-//Alias Declaration
 alias physicalSP S0;
 alias sysCallNo S1;
 alias currentPID S2;
@@ -49,7 +48,7 @@ if (sysCallNo == 8) then
     //Setting the newPTBR value
     newPTBR = PAGE_TABLE + 8 * newPID;
     
-    //Counting the number of free pages required
+    //Counting the number of pages required
     i = 0;
     j = 0;
     while (i < 4) do
@@ -58,6 +57,7 @@ if (sysCallNo == 8) then
         endif;
         i = i + 1;
     endwhile;
+    
     
     //Looking for the free pages
     i = 25;
@@ -74,14 +74,14 @@ if (sysCallNo == 8) then
     if (j != 0) then
         [physicalSP - 2] = -1;
         ireturn;
-    endif
+    endif;
     
     //Performing Page Duplication
     i = 0;
     while (i < 4) do
         //If the Page is not being used
         if ([PTBR + i * 2] == -1) then
-            [newPTBR + i * 2] = [PTBR + i * 2];
+            [newPTBR + i * 2] = -1;
         else
             //Looking for vacant Memory Block
             j = 25;
@@ -93,7 +93,7 @@ if (sysCallNo == 8) then
                 j = j + 1;
             endwhile;
             
-            //if no page is available
+            //if no page is available; shouldnt occur since pages are counted.
             if (j == 64) then
                 [physicalSP - 2] = -1;
                 ireturn;
@@ -157,7 +157,7 @@ if (sysCallNo == 8) then
     [physicalSP - 2] = newPID;
     
     //Setting Return Value for Child Process
-    [physicalSP - 1] = -2;
+    [childPSP - 1] = -2;
     
     //Returning the Parent Program
     ireturn;

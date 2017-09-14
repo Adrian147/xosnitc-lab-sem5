@@ -1,5 +1,5 @@
 // Alias definitions
-alias newphysicalSP S0;
+alias physicalSP S0;
 alias sysCallNo S1;
 alias currentPID S2;
 alias currentPCB S3;
@@ -7,8 +7,10 @@ alias newPID S4;
 alias newPCB S5;
 alias i S6;
 alias j S7;
+alias newphysicalSP S8;
+
 //Physical SP value
-newphysicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512); 
+physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512); 
 
 //Obtaining syscall number
 sysCallNo = [physicalSP - 1];
@@ -57,7 +59,7 @@ while (i < 8) do
 	    [j] = -1;
 	    [j + 1] = -1;
     endif;
-    i++;
+    i = i + 1;
 endwhile;
 
 //Setting State to terminated
@@ -65,7 +67,7 @@ endwhile;
 
 //Invalidating Page Table entries and MFL entries
 i = 0;
-while (i < 4) then
+while (i < 4) do
     j = PTBR + 2 * i;
     if ([j] != -1) then
         //Invalidating MFL

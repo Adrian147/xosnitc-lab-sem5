@@ -11,7 +11,6 @@ alias basic_block S8;
 alias l_seek S9;
 alias dat_block S10;
 
-
 // Calculating the Physical SP address
 physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
 

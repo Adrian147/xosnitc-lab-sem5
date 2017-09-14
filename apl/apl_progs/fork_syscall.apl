@@ -1,8 +1,17 @@
 integer main()
-{
+{   
+    integer i;
 	integer pid;
-	print "Before Fork";
-	pid = Fork();
-	print "After Fork";
-	return 0;
+	
+	while (i < 6) do
+	    print("Before Fork");
+	    pid = Fork();
+	    print("After Fork");
+	    print(pid);
+	   
+        i = i + 1;
+    endwhile;
+    
+    return 0;
 }
+

@@ -54,18 +54,20 @@ if (sysCallNo == 9) then
 	j = 0;
 	i = 0;
 	
+	//Since blocks are continuous.                                                        
 	while (j < 256) do
 	    if ([SCRATCHPAD + j] != -1) then
 	        i = i + 1;
-	        //Break on -1?
+	    else
+	        break;
 	    endif;
 	    j = j + 1;
 	endwhile;
 	
 	//Programs can only have 3 code blocks in XOS
 	if (i > 3) then
-	    [physicalSP - 2] = -1;
-    ireturn;
+	    [physicalSP - 2] = -1; 
+        ireturn;
 	endif;
 	
 	//Storing the number of blocks in EXEC file
@@ -74,7 +76,7 @@ if (sysCallNo == 9) then
 	//Checking if Adequate Page Blocks used in current process
     j = 0;
     
-    //Removing one for stack
+    //4th page dedicated for stack
     while (j < 3) do
         if ([PTBR + j * 2] != -1) then
             i = i - 1;
@@ -110,9 +112,8 @@ if (sysCallNo == 9) then
         k = 0;
         j = 25; 
         while (i > 0) do
-        
             while (j < 448) do
-                if ([DISK_LIST + j] == 0) then
+                if ([MEM_LIST + j] == 0) then
                     break;
                 endif;
         
@@ -121,12 +122,11 @@ if (sysCallNo == 9) then
  
             //if no free file is found
             if (j == 448) then 
-                [physicalSP - 2] = -1;
+                [physicalSP - 2] = -1;     
                 ireturn;
             endif;
             
-            //!! I guess it's memory disk
-            [DISK_LIST + j] = 1;
+            [MEM_LIST + j] = 1;
             
             //Adding this page to the process table
             while (k < 4) do
@@ -137,20 +137,20 @@ if (sysCallNo == 9) then
                     break;
                 endif;
                 k = k + 1;
-            end;
+            endwhile;
             
             //This error should not take place, since pages are counted.
             if (k == 4) then
                 print("No more Pages");
-                [physicalSP - 2] = -1;
+                [physicalSP - 2] = -1;   
                 ireturn;
             endif;
-            
+            print("Added New");
             i = i + 1;       
         endwhile;
     endif;
     
-    //Loading Code Blocks to the Process Table
+    //Loading Code Blocks to the Process Table pages
     load (1, basic_block);
     i = 0;
     while (i < noBlocks) do
@@ -177,7 +177,7 @@ if (sysCallNo == 9) then
 	        [j] = -1;
 	        [j + 1] = -1;
         endif;
-        i++;
+        i = i + 1;
     endwhile;
     
     //Setting Logical SP to start of page 3
@@ -194,5 +194,5 @@ if (sysCallNo == 9) then
 endif;
 
 // if the INT 6 was improperly called
-[physicalSP - 2] = -1;
+[physicalSP - 2] = -1;                            
 ireturn;

@@ -106,5 +106,10 @@ integer main()
     n = 20;
     i = 1;
     
+    i = Exec("odd.xsm");
+    
+    print("Error");
+    print(i);
+    
     return 0;
 }

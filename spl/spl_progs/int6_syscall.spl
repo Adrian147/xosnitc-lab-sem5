@@ -71,7 +71,7 @@ if (sysCallNo == 9) then
 	endif;
 	
 	//Storing the number of blocks in EXEC file
-	noBlocks = j;
+	noBlocks = i;
 	
 	//Checking if Adequate Page Blocks used in current process
     j = 0;
@@ -111,8 +111,8 @@ if (sysCallNo == 9) then
         //Since User Pages start at 25
         k = 0;
         j = 25; 
-        while (i > 0) do
-            while (j < 448) do
+        while (i < 0) do
+            while (j < 64) do
                 if ([MEM_LIST + j] == 0) then
                     break;
                 endif;
@@ -121,7 +121,7 @@ if (sysCallNo == 9) then
             endwhile;
  
             //if no free file is found
-            if (j == 448) then 
+            if (j == 64) then 
                 [physicalSP - 2] = -1;     
                 ireturn;
             endif;
@@ -145,7 +145,7 @@ if (sysCallNo == 9) then
                 [physicalSP - 2] = -1;   
                 ireturn;
             endif;
-            print("Added New");
+            
             i = i + 1;       
         endwhile;
     endif;

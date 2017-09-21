@@ -63,7 +63,7 @@ if (sysCallNo == 9) then
 	    endif;
 	    j = j + 1;
 	endwhile;
-	
+	 
 	//Programs can only have 3 code blocks in XOS
 	if (i > 3) then
 	    [physicalSP - 2] = -1; 
@@ -85,10 +85,10 @@ if (sysCallNo == 9) then
     endwhile;
     
     //checking lesser blocks are going to be used.
-    if (i > 0) then
-        //since we're only deleting the excess code blocks and useing Stack.
-        j = 3;
-        while (i > 0) do
+    if (i < 0) then
+        //since we're only deleting the excess code blocks and using Stack.
+        j = 2;
+        while (i < 0) do
             code_page = PTBR + 2 * j;
             if ([code_page] != -1) then
             
@@ -99,19 +99,18 @@ if (sysCallNo == 9) then
                 [code_page] = -1;
                 [code_page + 1] = "00";
                 
-                i = i - 1;
+                i = i + 1;
             endif;
-            
             j = j - 1;
         endwhile;
     endif;
     
     //Checking if page allocation is required
-    if (i < 0) then
+    if (i > 0) then
         //Since User Pages start at 25
         k = 0;
         j = 25; 
-        while (i < 0) do
+        while (i > 0) do
             while (j < 64) do
                 if ([MEM_LIST + j] == 0) then
                     break;
@@ -120,7 +119,7 @@ if (sysCallNo == 9) then
                 j = j + 1;
             endwhile;
  
-            //if no free file is found
+            //if no free page is found
             if (j == 64) then 
                 [physicalSP - 2] = -1;     
                 ireturn;
@@ -129,30 +128,32 @@ if (sysCallNo == 9) then
             [MEM_LIST + j] = 1;
             
             //Adding this page to the process table
-            while (k < 4) do
+            while (k < 3) do
                 code_page = PTBR + 2 * k;
-                if ([code_page] != -1) then
+                
+                if ([code_page] == -1) then
                     [code_page] = j;
-                    [code_page] = "01";
+                    [code_page + 1] = "01";
                     break;
                 endif;
                 k = k + 1;
             endwhile;
             
             //This error should not take place, since pages are counted.
-            if (k == 4) then
+            if (k == 3) then
                 print("No more Pages");
                 [physicalSP - 2] = -1;   
                 ireturn;
             endif;
             
-            i = i + 1;       
+            i = i - 1;       
         endwhile;
     endif;
     
     //Loading Code Blocks to the Process Table pages
     load (1, basic_block);
     i = 0;
+   
     while (i < noBlocks) do
         //Loading Code Blocks into the pages
         load([PTBR + 2 * i], [SCRATCHPAD + i]);

@@ -43,15 +43,14 @@ load --int=6 $HOME/myxos/spl/spl_progs/int6.xsm
 ./apl $HOME/myxos/apl/apl_progs/odde.apl
 
 load --init $HOME/myxos/apl/apl_progs/exec_syscall.xsm
-rm --exec odd.xsm
+rm --exec odde.xsm
 load --exec $HOME/myxos/apl/apl_progs/odde.xsm
 
 ##Exit Testing
 ./apl $HOME/myxos/apl/apl_progs/even.apl
 ./apl $HOME/myxos/apl/apl_progs/odd.apl
 
-
-
+rm --exec odd.xsm
 load --exec $HOME/myxos/apl/apl_progs/odd.xsm
 load --init $HOME/myxos/apl/apl_progs/even.xsm
 

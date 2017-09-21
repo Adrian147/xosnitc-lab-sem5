@@ -13,9 +13,9 @@ integer main()
         i = i + 1;
     endwhile;
     
-    i = Exec("odde.xsm");
+    i = Exec("odd.xsm");
     
-    print("Error");
+    print("Error!");
     print(i);
     
     return 0;

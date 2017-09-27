@@ -198,7 +198,7 @@ endif;
 //Getpid Syscall
 if (sysCallNo == 11) then
     //Setting Return Value to the PID
-    [childPSP - 1] = currentPID;
+    [physicalSP - 2] = currentPID;
     
     // returning to the loaded program
     ireturn;
@@ -210,7 +210,7 @@ if (sysCallNo == 12) then
     PPID = [currentPCB + 31];
     
     //Setting Return Value to the PID
-    [childPSP - 1] = PPID;
+    [physicalSP - 2] = PPID;
     
     // returning to the loaded program
     ireturn;

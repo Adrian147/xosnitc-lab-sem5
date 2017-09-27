@@ -77,8 +77,6 @@ if (sysCallNo == 13) then
     //Changing State to WaitingPID + 100
     [currentPCB + 1] = 100 + waitingPID;
     
-    //Setting the return value to stack
-    [physicalSP - 2] = 0;
     
     // Scheduling Next Ready State
     // Documentation mentions to invoke scheduler of exit but functions are not 
@@ -105,6 +103,9 @@ if (sysCallNo == 13) then
     [currentPCB + 12] = R5;
     [currentPCB + 13] = R6;
     [currentPCB + 14] = R7;
+    
+    //Setting the return value to stack
+    [physicalSP - 2] = 0;
 endif;
 
 //******************************************

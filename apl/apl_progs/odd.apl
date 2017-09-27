@@ -3,7 +3,12 @@ integer main()
     integer n;
     integer i;
     integer status;
+    integer pid;
+    integer ppid;
     
+    //Initial values
+    ppid = -1;
+    pid = -1;
     n = 100;
     i = 1;
     
@@ -14,7 +19,16 @@ integer main()
         i = i + 1;
     endwhile;
     
-    Exit();
+    pid = Getpid();
+    ppid = Getppid();
     
+    print("pid");
+    print(pid);
+    print("");
+    
+    print("ppid");
+    print(ppid);
+    print("");
+    Exit();
     return 0;
 }

@@ -111,7 +111,9 @@ if (sysCallNo == 9) then
         //Since User Pages start at 25
         k = 0;
         j = 25; 
-        while (i > 0) do
+        
+        //first checking if required pages are available
+        while(k < i) do
             while (j < 64) do
                 if ([MEM_LIST + j] == 0) then
                     break;
@@ -125,6 +127,21 @@ if (sysCallNo == 9) then
                 [physicalSP - 2] = -1;     
                 ireturn;
             endif;
+            
+            k = k + 1;
+        endwhile;
+        
+        //Performing the new page assignments
+        k = 0;
+        j = 25; 
+        while (i > 0) do
+            while (j < 64) do
+                if ([MEM_LIST + j] == 0) then
+                    break;
+                endif;
+        
+                j = j + 1;
+            endwhile;
             
             [MEM_LIST + j] = 1;
             

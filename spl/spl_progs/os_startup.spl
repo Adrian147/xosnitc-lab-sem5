@@ -9,6 +9,9 @@ load (24, 18);
 // Setting PID 0 entry 
 [READY_LIST + 0] = 0;
 
+// Setting the Parent PID entry
+[READY_LIST + 31] = 0;
+
 // Loading the INIT Program Code into Memory
 load(25, 21);
 load(26, 22); 

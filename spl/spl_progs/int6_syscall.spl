@@ -11,6 +11,7 @@ alias noBlocks S8;
 alias physicalSP S9;
 alias currentPID S10;
 alias currentPCB S11;
+alias PPID S12;
 
 //Calculating Physical SP value
 physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
@@ -188,6 +189,27 @@ if (sysCallNo == 9) then
     
     //Setting IP value to 0
     [physicalSP] = 0;
+    
+    // returning to the loaded program
+    ireturn;
+endif;
+
+//Getpid Syscall
+if (sysCallNo == 11) then
+    //Setting Return Value to the PID
+    [childPSP - 1] = currentPID;
+    
+    // returning to the loaded program
+    ireturn;
+endif;
+
+//Getppid Syscall
+if (sysCallNo == 12) then
+    //Getting out the PPID
+    PPID = [currentPCB + 31];
+    
+    //Setting Return Value to the PID
+    [childPSP - 1] = PPID;
     
     // returning to the loaded program
     ireturn;

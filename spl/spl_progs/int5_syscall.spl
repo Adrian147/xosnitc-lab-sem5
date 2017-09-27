@@ -45,6 +45,9 @@ if (sysCallNo == 8) then
     //Setting PID in the PCB
     [newPCB] = newPID;
     
+    //Setting the Parent PID value on the PID
+    [newPCB + 31] = currentPID;
+    
     //Setting the newPTBR value
     newPTBR = PAGE_TABLE + 8 * newPID;
     

@@ -2,6 +2,7 @@ integer main()
 {   
     integer n;
     integer i;
+    integer status;
     
     n = 100;
     i = 1;
@@ -12,6 +13,8 @@ integer main()
         endif;
         i = i + 1;
     endwhile;
+    
+    Exit();
     
     return 0;
 }

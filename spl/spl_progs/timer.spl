@@ -49,13 +49,6 @@ while 1 do
     endif;
 endwhile;
 
-// Pseudo Round Robin Code
-//if (currentPID == 1) then
-//    newPID = 0;
-//endif;
-//if (currentPID == 0) then
-//endif;
-//    newPID = 1;
 
 //Loading Registers from the PCB
 //Settign BP, SP from PCB entry

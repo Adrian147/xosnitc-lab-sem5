@@ -21,7 +21,6 @@ load --init $HOME/myxos/apl/apl_progs/syscall.xsm
 ./spl --exhandler $HOME/myxos/spl/spl_progs/haltprog.spl
 ./spl --int=7 $HOME/myxos/spl/spl_progs/haltprog.spl
 
-
 ./apl $HOME/myxos/apl/apl_progs/RW_err_syscall.apl
 ./apl $HOME/myxos/apl/apl_progs/seek_err_syscall.apl
 ./apl $HOME/myxos/apl/apl_progs/RW_syscall.apl
@@ -50,14 +49,14 @@ load --exec $HOME/myxos/apl/apl_progs/odde.xsm
 ./apl $HOME/myxos/apl/apl_progs/even.apl
 ./apl $HOME/myxos/apl/apl_progs/odd.apl
 
-
-
 load --exec $HOME/myxos/apl/apl_progs/odd.xsm
 load --init $HOME/myxos/apl/apl_progs/even.xsm
 
 ./spl --os $HOME/myxos/spl/spl_progs/os_startup_exit.spl
 load --os $HOME/myxos/spl/spl_progs/os_startup.xsm
 
+##Week11
+./spl --int=7 $HOME/myxos/spl/spl_progs/int7_syscall.spl
 
-
-
+./apl $HOME/myxos/apl/apl_progs/xsh.apl
+load --init $HOME/myxos/apl/apl_progs/xsh.xsm

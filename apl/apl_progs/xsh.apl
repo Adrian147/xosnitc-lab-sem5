@@ -8,7 +8,7 @@ decl
 enddecl
 integer main()
 {     
-     while 1==1 do 
+     while (1==1) do 
         print("Enter Choice");
         print("1.Exec file");
         print("2.Send Signal");
@@ -24,7 +24,7 @@ integer main()
             print("-----");
             
             //Option to wait
-            print("fg(0) or bg(1)");
+            print("bg(0) or fg(1)");
             print("Enter Choice");
             read(wait);
             print("-----");
@@ -32,11 +32,12 @@ integer main()
             
             pid = Fork();
             if (pid == -1) then
-                print("fork failed");
+                print("Fork Failed");
             endif;
             
             //Using exec in the child process
             if (pid == -2) then
+                print("Running...");
                 status = Exec(filename);
                 
                 //if exec failed
@@ -48,12 +49,22 @@ integer main()
             
             // Waiting for exec if required
             if ((pid != -2 && pid != -1) && wait == 1) then
-                Wait(pid);
+                print("childpid");
+                print(pid);
+                print("-----");
+                
+                status = Wait(pid);
+                
+                if (status == -1) then
+                    print("wait failed");
+                else
+                    print("completed");
+                endif;
             endif;
         endif;
         
         if (choice == 2) then
-            print("sending.. ")
+            print("sending.. ");
             status = Signal();
             
             print("status");

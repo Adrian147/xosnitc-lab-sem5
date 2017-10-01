@@ -2,9 +2,6 @@
 load (7, 1);
 load (8, 2);
 
-// Loading INT 7 from XFS to Memory 
-load (23, 17);
-load (24, 18);
 
 // Setting PID 0 entry 
 [READY_LIST + 0] = 0;
@@ -12,23 +9,18 @@ load (24, 18);
 // Setting the Parent PID entry
 [READY_LIST + 31] = 0;
 
-// Loading the INIT Program Code into Memory
-load(25, 21);
-load(26, 22); 
-load(27, 23);
-
 // Setting Page Table Base and Length Registers
 PTBR = 1024; 
 PTLR = 4;
 
 // Setting up Page Table Entry for PID 0
-[PTBR + 0] = 25;
-[PTBR + 1] = "01";
-[PTBR + 2] = 26;
-[PTBR + 3] = "01"; 
-[PTBR + 4] = 27;
-[PTBR + 5] = "01";
-[PTBR + 6] = 28;
+[PTBR + 0] = 21;
+[PTBR + 1] = "00";
+[PTBR + 2] = 22;
+[PTBR + 3] = "00"; 
+[PTBR + 4] = 23;
+[PTBR + 5] = "00";
+[PTBR + 6] = 25;
 [PTBR + 7] = "01";
 
 // Changing PID 0 STATE to Running
@@ -88,9 +80,20 @@ load (10, 4);
 load (5, 19);
 load (6, 20);
 
+// Invalidating the Swap entries
+i = 448;
+while (i < 512) do
+    //Invalidating Swap block
+    [DISK_LIST + i] = 0;
+    
+    i = i + 1;
+endwhile;
+
+//Commiting the Changes
+store (6, 20);
+
 //Invalidate System wide Open File Table
 i = 0;
-
 while (i < 64) do
     //Invalidating Index to FAT Table
     [FILE_TABLE + i * 2] = -1;
@@ -102,7 +105,6 @@ endwhile;
 
 //Invalidating Non-Reserved Memory Page blocks
 i = 25;
-
 while (i < 64) do
     //Invalidating Index to FAT Table
     [MEM_LIST + i] = 0;
@@ -110,11 +112,9 @@ while (i < 64) do
     i = i + 1;
 endwhile;
 
-//Setting INIT Page Values in Memory Free 
+//Setting INIT Stack Page in Memory Free List
 [MEM_LIST + 25] = 1;
-[MEM_LIST + 26] = 1;
-[MEM_LIST + 27] = 1;
-[MEM_LIST + 28] = 1;
+
 
 //Invalidate all other PCB entries with STATE 0
 i = 1;

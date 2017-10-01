@@ -48,7 +48,7 @@ if (sysCallNo == 9) then
     
     //Saving the FAT entry
 	FAT_entry = i;
-	
+
 	//Counting the number of used data blocks in the EXEC file
 	basic_block =  [FAT + 8 * FAT_entry + 2];
 	load (1, basic_block);	
@@ -74,110 +74,55 @@ if (sysCallNo == 9) then
 	//Storing the number of blocks in EXEC file
 	noBlocks = i;
 	
-	//Checking if Adequate Page Blocks used in current process
-    j = 0;
-    
-    //4th page dedicated for stack
-    while (j < 3) do
-        if ([PTBR + j * 2] != -1) then
-            i = i - 1;
-        endif;
-        j = j + 1;
-    endwhile;
-    
-    //checking lesser blocks are going to be used.
-    if (i < 0) then
-        //since we're only deleting the excess code blocks and using Stack.
-        j = 2;
-        while (i < 0) do
-            code_page = PTBR + 2 * j;
-            if ([code_page] != -1) then
-            
-                //Clearing MFL entry
-                [MEM_LIST + [code_page]] = 0;
-                
-                //Clearing Page Table entry
-                [code_page] = -1;
-                [code_page + 1] = "00";
-                
-                i = i + 1;
-            endif;
-            j = j - 1;
-        endwhile;
-    endif;
-    
-    //Checking if page allocation is required
-    if (i > 0) then
-        //Since User Pages start at 25
-        k = 0;
-        j = 25; 
-        
-        //first checking if required pages are available
-        while(k < i) do
-            while (j < 64) do
-                if ([MEM_LIST + j] == 0) then
-                    break;
-                endif;
-        
-                j = j + 1;
-            endwhile;
- 
-            //if no free page is found
-            if (j == 64) then 
-                [physicalSP - 2] = -1;     
-                ireturn;
-            endif;
-            
-            k = k + 1;
-        endwhile;
-        
-        //Performing the new page assignments
-        k = 0;
-        j = 25; 
-        while (i > 0) do
-            while (j < 64) do
-                if ([MEM_LIST + j] == 0) then
-                    break;
-                endif;
-        
-                j = j + 1;
-            endwhile;
-            
-            [MEM_LIST + j] = 1;
-            
-            //Adding this page to the process table
-            while (k < 3) do
-                code_page = PTBR + 2 * k;
-                
-                if ([code_page] == -1) then
-                    [code_page] = j;
-                    [code_page + 1] = "01";
-                    break;
-                endif;
-                k = k + 1;
-            endwhile;
-            
-            //This error should not take place, since pages are counted.
-            if (k == 3) then
-                print("No more Pages");
-                [physicalSP - 2] = -1;   
-                ireturn;
-            endif;
-            
-            i = i - 1;       
-        endwhile;
-    endif;
-    
-    //Loading Code Blocks to the Process Table pages
-    load (1, basic_block);
+	//Setting Code Page MFL and DFL structures
     i = 0;
-   
-    while (i < noBlocks) do
-        //Loading Code Blocks into the pages
-        load([PTBR + 2 * i], [SCRATCHPAD + i]);
+    while (i < 3) do
+        j = PTBR + i * 2;
+        //Modifying the DFL and MFL for Pure Demand paging
+        if ([j] != -1) then
+            //If the page is Valid; in Memory
+            if([j + 1] = "11" || [j + 1] == "01") then
+                //Extra error Check for now  !!!
+                if ([j] > 64) then
+                    print("Disk block, not on memory");
+                    [physicalSP - 2] = -1;
+                    ireturn;
+                endif;
+                [MEM_LIST + [j]] = [MEM_LIST + [j]] - 1;
+            else
+            //If page is placed in the Swap Area
+                //Extra Check for now !!!
+                if ([j] < 448 || [j] > 511) then
+                    print("Not in the swap area ");
+                    [physicalSP - 2] = -1;
+                    ireturn;
+                endif;
+                [DISK_LIST + [j]] = [DISK_LIST + [j]] - 1;
+        endif;
         
         i = i + 1;
     endwhile;
+    
+    //Commiting DFL changes 
+    store (6, 20);
+    
+    //Setting the PPPT for the new Program
+    i = 0;
+    while (i < 3) do
+        code_page = PTBR + 2 * i;
+              
+        if (i < noBlocks) then
+            [code_page] = [SCRATCHPAD + i];
+        else
+            [code_page] = -1;
+        endif;
+        [code_page + 1] = "00";
+                
+        i = i + 1;
+    endwhile;
+    
+    //Stack Page Auxillary ////FOR TESTING ONLY 
+    [PTBR + 2 * i + 1] = "01";
     
     //Closing all files
     i = 0;

@@ -87,7 +87,6 @@ if (sysCallNo == 13) then
     //Changing State to WaitingPID + 100
     [currentPCB + 1] = 100 + waitingPID;
     
-    
     // Scheduling Next Ready State
     // Documentation mentions to invoke scheduler of exit but functions are not 
     //    Available 
@@ -146,20 +145,40 @@ if (sysCallNo == 10) then
     //Setting State to terminated
     [currentPCB + 1] = 0;
     
-    //Invalidating Page Table entries and MFL entries
+    //Setting Code Page MFL and DFL structures
     i = 0;
-    while (i < 4) do
-        j = PTBR + 2 * i;
+    while (i < 3) do
+        j = PTBR + i * 2;
+        //Modifying the DFL and MFL for Pure Demand paging
         if ([j] != -1) then
-            //Invalidating MFL
-            [MEM_LIST + j]  = 0;
-        
-            //Invalidating the PPPT entry
-            [j] = -1;
-            [j + 1] = "00";
+            //If the page is Valid; in Memory
+            if([j + 1] = "11" || [j + 1] == "01") then
+                //Extra error Check for now  !!!
+                if ([j] > 64) then
+                    print("Disk block, not on memory");
+                    [physicalSP - 2] = -1;
+                    ireturn;
+                endif;
+                [MEM_LIST + [j]] = [MEM_LIST + [j]] - 1;
+            else
+            //If page is placed in the Swap Area
+                //Extra Check for now !!!
+                if ([j] < 448 || [j] > 511) then
+                    print("Not in the swap area ");
+                    [physicalSP - 2] = -1;
+                    ireturn;
+                endif;
+                [DISK_LIST + [j]] = [DISK_LIST + [j]] - 1;
+                
+           [j] = -1;
+           [j + 1] = "00";
         endif;
+        
         i = i + 1;
     endwhile;
+    
+    //Commiting DFL changes 
+    store (6, 20);
     
     //Waking up all Processes with STATE == 100 + currentPID
     waitingPID = currentPID + 1;
@@ -189,16 +208,6 @@ while 1 do
         newPID = (newPID + 1) % 32;
         if newPID == currentPID then
             halt;
-            // if (sysCallNo == 13) then
-            //     //Condition met when all processes are waiting
-            //     [physicalSP - 2] = -1;
-            //     ireturn;
-            // endif;
-               
-            // // For Exit when there are no running processes
-            // if (sysCallNo == 10) then
-            //     halt;
-            // endif;
         endif;
     endif;
 endwhile;

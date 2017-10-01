@@ -1,0 +1,183 @@
+alias physicalSP S0;
+alias currentPID S1;
+alias currentPCB S2;
+alias cause S3;
+alias vpagenum S4;
+alias ipaddr S5; 
+alias replacePage S6;
+alias nextPID S7;
+alias nextPTBR S8;
+alias i S9;
+alias j S10;
+alias flag S11;
+alias reqblock S12;
+
+//Extracting the values in the Exception Flag Registers
+cause = EFR % 10;
+vpagenum = (EFR / 10) % 100; 
+ipaddr = (EFR / 1000);
+
+if (cause == 0) then
+    //Physical SP value
+    physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512); 
+
+    // Calculating PID
+    currentPID = (PTBR - 1024) / 8;
+
+    // Calculating PCB entry for currentPID
+    currentPCB = READY_LIST + 32 * currentPID;
+    
+    // Checking if vpagenum points to a Index
+    if([PTBR + vpagenum * 2] == -1) then
+        print("Invalid index");
+        //Going to the Exit() Syscall.
+        inline("MOV R0, 10");
+        inline("PUSH R0");
+        inline("JMP 11776");
+    endif;
+    
+    //Looking for a free page for allotment
+    i = 25;
+
+    while (i < 64) do
+        //Invalidating Index to FAT Table
+        if ([MEM_LIST + i] == 0) then
+            break;
+        endif;
+        i = i + 1;
+    endwhile;
+    
+    flag = 0;
+    //Setting the page index where required page to be stored
+    if (i != 64) then
+        [MEM_LIST + i] = 1;
+        replacePage = i;
+    else
+        //Using Second Change Replacement
+        nextPID = currentPID + 1;
+        while(nextPID != currentPID) do
+            nextPTBR = PAGE_TABLE + 8 * newPID;
+            
+            j = 0;
+            // Running through the Page Table for Victim Page
+            while(j < 3) do
+                //Checking if page used
+                if ([nextPTBR + j] == -1)then
+                    //Checking if second chanced and not shared 
+                    if ([nextPTBR + j + 1] == "01" && [MEM_LIST + [nextPTBR + j]] == 1) then
+                        flag = 1;
+                        break;
+                    endif;
+                    
+                    //Setting the Second Chance state
+                    if ([nextPTBR + j + 1] == "11") then
+                        [nextPTBR + j + 1] == "01";
+                    endif;
+                endif;
+                
+                j = j + 1;
+            endwhile;
+            
+            if(flag == 1) then
+                break;
+            endif;
+            
+            nextPID = (nextPID + 1) % 32;
+        endwhile;
+        
+        if (nextPID == currentPID) then
+            print("No pagees Posshible!!"); // Ever the case possible
+            //or run second chance again.
+            
+            //Going to the Exit() Syscall.
+            inline("MOV R0, 10");
+            inline("PUSH R0");
+            inline("JMP 11776");
+        endif;
+        
+        //Sending Victim Page to the Swap Area
+        i = 448;
+        while (i < 512) do
+            if ([DISK_LIST + i] == 0) then
+                break;
+            endif;
+        
+            i = i + 1;
+        endwhile;
+        
+        //If no swap block is found
+        if (i == 512) then
+            print("No pages in SWAP");
+            
+            //Going to the Exit() Syscall.
+            inline("MOV R0, 10");
+            inline("PUSH R0");
+            inline("JMP 11776");
+        endif;
+        
+        //Swapping out the block
+        store([nextPTBR + j], i);
+        [DISK_LIST + i] = 1;
+        
+        //Storing victim page number
+        replacePage = [nextPTBR + j];
+        
+        //Setting entry to SWAP
+        [nextPTBR + j] = i;
+        
+        //Setting the page to invalid
+        [nextPTBR + j + 1] = "00";
+    endif;
+    
+    //storing the required block to load into victim
+    reqblock = [PTBR + vpagenum];
+    
+    if (reqblock < 21 || reqblock > 511) then
+        print("Shouldn't be possible");
+        
+        //Going to the Exit() Syscall.
+        inline("MOV R0, 10");
+        inline("PUSH R0");
+        inline("JMP 11776");
+    endif;
+    
+    load (replacePage, reqblock);
+    if (reqblock > 448) then
+        //Stating that swap block will not be used for this page
+        [DISK_LIST + reqblock] = [DISK_LIST + reqblock] - 1;
+    endif;
+    
+    //Setting the Page entry values
+    [PTBR + vpagenum + 1] = "11";
+    
+    //Setting the IP value for return
+    SP = SP + 1;
+    [SP] = ipaddr;
+    
+    ireturn;
+else
+    print("Exception thrown");
+    print("At line");
+    print(ipaddr);
+    
+    if (cause == 1) then
+        print("Illegal Instruction");
+    endif;
+    
+    if (cause == 2) then
+        print("Illegal Memory Access");
+    endif;
+    
+    if (cause == 3) then
+        print("Arithmetic exception");
+    endif;
+    
+    if (cause == 4) then
+        print("Illegal operands");
+    endif;
+    
+    //Going to the Exit() Syscall.
+    inline("MOV R0, 10");
+    inline("PUSH R0");
+    inline("JMP 11776");	
+end;

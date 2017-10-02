@@ -60,3 +60,7 @@ load --os $HOME/myxos/spl/spl_progs/os_startup.xsm
 
 ./apl $HOME/myxos/apl/apl_progs/xsh.apl
 load --init $HOME/myxos/apl/apl_progs/xsh.xsm
+
+#Week10
+./spl --exhandler $HOME/myxos/spl/spl_progs/exhandler.spl
+./spl --os $HOME/myxos/spl/spl_progs/os_startup.spl

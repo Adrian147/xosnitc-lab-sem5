@@ -81,30 +81,21 @@ if (sysCallNo == 9) then
         //Modifying the DFL and MFL for Pure Demand paging
         if ([j] != -1) then
             //If the page is Valid; in Memory
-            if([j + 1] = "11" || [j + 1] == "01") then
-                //Extra error Check for now  !!!
-                if ([j] > 64) then
-                    print("Disk block, not on memory");
-                    [physicalSP - 2] = -1;
-                    ireturn;
-                endif;
+            if([j + 1] == "11" || [j + 1] == "01") then
                 [MEM_LIST + [j]] = [MEM_LIST + [j]] - 1;
             else
-            //If page is placed in the Swap Area
-                //Extra Check for now !!!
-                if ([j] < 448 || [j] > 511) then
-                    print("Not in the swap area ");
-                    [physicalSP - 2] = -1;
-                    ireturn;
+                //If the page is in Swap, Decrementing its use
+                if ([j] > 447) then
+                    [DISK_LIST + [j]] = [DISK_LIST + [j]] - 1;
                 endif;
-                [DISK_LIST + [j]] = [DISK_LIST + [j]] - 1;
+            endif;
         endif;
         
         i = i + 1;
     endwhile;
     
     //Commiting DFL changes 
-    store (6, 20);
+    store(6, 20);
     
     //Setting the PPPT for the new Program
     i = 0;
@@ -121,8 +112,8 @@ if (sysCallNo == 9) then
         i = i + 1;
     endwhile;
     
-    //Stack Page Auxillary ////FOR TESTING ONLY 
-    [PTBR + 2 * i + 1] = "01";
+    //Stack Page Auxillary Setting 
+    [PTBR + 7] = "01";
     
     //Closing all files
     i = 0;

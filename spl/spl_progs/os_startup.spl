@@ -2,7 +2,6 @@
 load (7, 1);
 load (8, 2);
 
-
 // Setting PID 0 entry 
 [READY_LIST + 0] = 0;
 
@@ -10,7 +9,7 @@ load (8, 2);
 [READY_LIST + 31] = 0;
 
 // Setting Page Table Base and Length Registers
-PTBR = 1024; 
+PTBR = READY_LIST; 
 PTLR = 4;
 
 // Setting up Page Table Entry for PID 0
@@ -29,8 +28,8 @@ PTLR = 4;
 // Setting Stack Pointer to the Logical address to Page 3 i.e. Stack.
 SP = 3 * 512; 
 
-// Setting up the INIT Value in the stack 
-[28 * 512] = 0;
+// Setting up the INIT Value in the Stack @ Page 25 of Memory
+[[PTBR + 6] * 512] = 0;
 
 // Invalidating Per-Process Page Table for INIT Process
 alias i S0;

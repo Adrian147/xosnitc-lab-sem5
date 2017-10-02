@@ -6,7 +6,7 @@ alias newPID S4;
 alias newPCB S5;
 alias i S6;
 alias newPTBR S7;
-alias j S8; //
+alias j S8; 
 alias childPSP S9;
 
 // Calculating the Physical SP address
@@ -62,8 +62,8 @@ if (sysCallNo == 8) then
         i = i + 1;
     endwhile;
     
-    //If adiquate free pages are not available 
-    // !!!! COULD BE IMPROVED WITH SWAPPING
+    // If adiquate free pages are not available 
+    // A victim page can be found to swap with tho
     if (i == 64) then
         [physicalSP - 2] = -1;
         ireturn;
@@ -73,7 +73,7 @@ if (sysCallNo == 8) then
     [MEM_LIST + i] = 1; 
     [newPTBR + 6] = i;
     
-    //Copying data from Parent to Child Stack
+    //Copying Data from Parent to Child Stack
     j = 0;
     while (j < 512) do
         [[newPTBR + 6] * 512 + j] = [[PTBR + 6] * 512 + j];
@@ -91,23 +91,14 @@ if (sysCallNo == 8) then
         //Modifying the DFL and MFL for Pure Demand paging
         if ([j] != -1) then
             //If the page is Valid; in Memory
-            if([j + 1] = "11" || [j + 1] == "01") then
-                //Extra error Check for now  !!!
-                if ([j] > 64) then
-                    print("Disk block, not on memory");
-                    [physicalSP - 2] = -1;
-                    ireturn;
-                endif;
+            if([j + 1] == "11" || [j + 1] == "01") then
                 [MEM_LIST + [j]] = [MEM_LIST + [j]] + 1;
             else
-            //If page is placed in the Swap Area
-                //Extra Check for now !!!
-                if ([j] < 448 || [j] > 511) then
-                    print("Not in the swap area ");
-                    [physicalSP - 2] = -1;
-                    ireturn;
+                if ([j] > 447) then
+                    //If page is placed in the Swap Area
+                    [DISK_LIST + [j]] = [DISK_LIST + [j]] + 1;
                 endif;
-                [DISK_LIST + [j]] = [DISK_LIST + [j]] + 1;
+            endif;
         endif;
         
         i = i + 1;

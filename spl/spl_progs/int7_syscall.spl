@@ -24,12 +24,12 @@ currentPID = (PTBR - 1024) / 8;
 // Calculating PCB entry for currentPID
 currentPCB = READY_LIST + 32 * currentPID;
 
-//*************************************
 //If the INT 7 was improperly called
 if (sysCallNo != 13 && sysCallNo != 10 && sysCallNo != 14) then
     [physicalSP - 2] = -1;
     ireturn;
 endif;
+
 
 //Signal Syscall 
 if (sysCallNo == 14) then
@@ -64,7 +64,7 @@ if (sysCallNo == 14) then
     ireturn;
 endif;
 
-//*************************************
+
 //Wait Syscall 
 if (sysCallNo == 13) then
     //Taking PID of the process to wait for
@@ -117,6 +117,7 @@ if (sysCallNo == 13) then
     [physicalSP - 2] = 0;
 endif;
 
+
 //******************************************
 //Implementing the Next Process Scheduling for Exit and Wait Together
 
@@ -152,23 +153,15 @@ if (sysCallNo == 10) then
         //Modifying the DFL and MFL for Pure Demand paging
         if ([j] != -1) then
             //If the page is Valid; in Memory
-            if([j + 1] = "11" || [j + 1] == "01") then
-                //Extra error Check for now  !!!
-                if ([j] > 64) then
-                    print("Disk block, not on memory");
-                    [physicalSP - 2] = -1;
-                    ireturn;
-                endif;
+            if([j + 1] == "11" || [j + 1] == "01") then
+                
                 [MEM_LIST + [j]] = [MEM_LIST + [j]] - 1;
             else
-            //If page is placed in the Swap Area
-                //Extra Check for now !!!
-                if ([j] < 448 || [j] > 511) then
-                    print("Not in the swap area ");
-                    [physicalSP - 2] = -1;
-                    ireturn;
+                //If page is placed in the Swap Area
+                if ([j] > 447) then
+                    [DISK_LIST + [j]] = [DISK_LIST + [j]] - 1;
                 endif;
-                [DISK_LIST + [j]] = [DISK_LIST + [j]] - 1;
+            endif;
                 
            [j] = -1;
            [j + 1] = "00";
@@ -196,6 +189,7 @@ if (sysCallNo == 10) then
         endif;
     endwhile;
 endif;
+
 
 // Looking to the next available process
 newPID = currentPID + 1;

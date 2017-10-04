@@ -148,7 +148,7 @@ if (sysCallNo == 10) then
     
     //Setting Code Page MFL and DFL structures
     i = 0;
-    while (i < 3) do
+    while (i < 4) do
         j = PTBR + i * 2;
         //Modifying the DFL and MFL for Pure Demand paging
         if ([j] != -1) then
@@ -201,6 +201,7 @@ while 1 do
     else 
         newPID = (newPID + 1) % 32;
         if newPID == currentPID then
+            breakpoint;
             halt;
         endif;
     endif;

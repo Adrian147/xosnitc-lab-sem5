@@ -9,7 +9,7 @@ load (8, 2);
 [READY_LIST + 31] = 0;
 
 // Setting Page Table Base and Length Registers
-PTBR = READY_LIST; 
+PTBR = PAGE_TABLE; 
 PTLR = 4;
 
 // Setting up Page Table Entry for PID 0
@@ -123,5 +123,8 @@ while (i < 32) do
     
     i = i + 1;
 endwhile;
+
+print("Now Online");
+print("----");
 
 ireturn; 

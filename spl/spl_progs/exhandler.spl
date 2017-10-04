@@ -31,8 +31,9 @@ if (cause == 0) then
     if([PTBR + vpagenum * 2] == -1) then
         print("Invalid index");
         //Going to the Exit() Syscall
-        inline "MOV R0, 10";
-        inline "PUSH R0";
+        SP = SP + 1;
+        [SP] = 10;
+        SP = SP + 1;
         inline "JMP 11776";
     endif;
     
@@ -92,8 +93,9 @@ if (cause == 0) then
             //or run second chance again.
             
             //Going to the Exit() Syscall.
-            inline "MOV R0, 10";
-            inline "PUSH R0";
+            SP = SP + 1;
+            [SP] = 10;
+            SP = SP + 1;
             inline "JMP 11776";
         endif;
         
@@ -112,8 +114,9 @@ if (cause == 0) then
             print("No pages in SWAP");
             
             //Going to the Exit() Syscall.
-            inline "MOV R0, 10";
-            inline "PUSH R0";
+            SP = SP + 1;
+            [SP] = 10;
+            SP = SP + 1;
             inline "JMP 11776";
         endif;
         
@@ -150,30 +153,46 @@ if (cause == 0) then
     SP = SP + 1;
     [SP] = ipaddr;
     
+    SP = SP + 1;
+    [SP] = 10;
+    inline "JMP 11776";	
+    
+    halt;
     ireturn;
 else
-    print("Exception thrown");
+    print("Exception!!");
     print("At line");
     print(ipaddr);
+    print("-----");
+    print(cause);
+    print("-----");
     
     if (cause == 1) then
-        print("Illegal Instruction");
+        print("Illegal");
+        print("Instruction");
     endif;
     
     if (cause == 2) then
-        print("Illegal Memory Access");
+        print("Illegal");
+        print("Memory");
+        print("Access");
     endif;
     
     if (cause == 3) then
-        print("Arithmetic exception");
+        print("Arithmetic");
+        print("exception");
     endif;
     
     if (cause == 4) then
-        print("Illegal operands");
+        print("Illegal");
+        print("operands");
     endif;
     
+    print("-----");
     //Going to the Exit() Syscall.
-    inline "MOV R0, 10";
-    inline "PUSH R0";
+    SP = SP + 1;
+    [SP] = 10;
+    SP = SP + 1;
     inline "JMP 11776";	
+    
 endif;

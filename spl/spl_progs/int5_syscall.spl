@@ -132,8 +132,9 @@ if (sysCallNo == 8) then
         [newPCB + 16 + i * 2] = [currentPCB + 16 + i * 2];
         
         //Incrementing the System Wide File Counter
-        [FILE_TABLE + [newPCB + 15 + i * 2] * 2 + 1] = [FILE_TABLE + [newPCB + 15 + i * 2] * 2 + 1] + 1;
-        
+        if ([newPCB + 15 + i * 2] != -1) then
+            [FILE_TABLE + [newPCB + 15 + i * 2] * 2 + 1] = [FILE_TABLE + [newPCB + 15 + i * 2] * 2 + 1] + 1;
+        endif;
         i = i + 1;
     endwhile;
     

@@ -89,7 +89,8 @@ if (cause == 0) then
         endwhile;
         
         if (nextPID == currentPID) then
-            print("No pages available!!"); // Ever the case possible
+            breakpoint;
+            print("No pages"); // Ever the case possible
             //or run second chance again.
             
             //Going to the Exit() Syscall.

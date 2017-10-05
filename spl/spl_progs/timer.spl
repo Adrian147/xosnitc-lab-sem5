@@ -39,7 +39,7 @@ alias newPID S3;
 alias newPCB S4;
 
 //Proper Round Robin Code cycling through all processes
-newPID = currentPID + 1;
+newPID = (currentPID + 1) % 32;
 while 1 do
     newPCB = READY_LIST + 32 * newPID;
     if [newPCB + 1] == 1 then

@@ -34,7 +34,7 @@ endif;
 //Signal Syscall 
 if (sysCallNo == 14) then
     //Waking up all Processes with STATE == 100 + currentPID
-    waitingPID = currentPID + 1;
+    newPID = (currentPID + 1) % 32;
     
     //Keeping a flag if any process recieves this signal
     flag = 0;
@@ -174,7 +174,7 @@ if (sysCallNo == 10) then
     store (6, 20);
     
     //Waking up all Processes with STATE == 100 + currentPID
-    waitingPID = currentPID + 1;
+    waitingPID = (currentPID + 1) % 32;
     while 1 do
         waitingPCB = READY_LIST + 32 * waitingPID;   
        
@@ -192,8 +192,7 @@ endif;
 
 
 // Looking to the next available process
-newPID = currentPID + 1;
-
+newPID = (currentPID + 1) % 32;
 while 1 do
     newPCB = READY_LIST + 32 * newPID;
     if [newPCB + 1] == 1 then

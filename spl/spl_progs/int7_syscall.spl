@@ -26,8 +26,13 @@ currentPCB = READY_LIST + 32 * currentPID;
 
 //If the INT 7 was improperly called
 if (sysCallNo != 13 && sysCallNo != 10 && sysCallNo != 14) then
+    print([physicalSP]);
+    print(physicalSP);
+    breakpoint;
+    print("Improper Exit Call");
     [physicalSP - 2] = -1;
     ireturn;
+    
 endif;
 
 
@@ -123,6 +128,7 @@ endif;
 
 //Exit Specific Code
 if (sysCallNo == 10) then
+    print("Exiting");
     //Closing all Files
     i = 0;
     while (i < 8) do

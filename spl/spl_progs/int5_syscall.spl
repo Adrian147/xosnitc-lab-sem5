@@ -38,6 +38,7 @@ if (sysCallNo == 8) then
     
     if (newPID == currentPID) then
         // If not free PCB present
+        print("No PCBs");
         [physicalSP - 2] = -1;
         ireturn;
     endif;
@@ -65,6 +66,7 @@ if (sysCallNo == 8) then
     // If adiquate free pages are not available 
     // A victim page can be found to swap with tho
     if (i == 64) then
+        print("No stackpg");
         [physicalSP - 2] = -1;
         ireturn;
     endif;

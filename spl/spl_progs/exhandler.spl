@@ -18,6 +18,9 @@ vpagenum = (EFR / 10) % 100;
 ipaddr = (EFR / 1000);
 
 if (cause == 0) then
+    print("Page 404");
+    print(ipaddr);
+    print(vpagenum);
     //Physical SP value
     physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512); 
 
@@ -30,11 +33,11 @@ if (cause == 0) then
     // Checking if vpagenum points to a Index
     if([PTBR + vpagenum * 2] == -1) then
         print("Invalid index");
-        //Going to the Exit() Syscall
+        //Going to the Exit() Syscall.
         SP = SP + 1;
-        [SP] = 10;
-        SP = SP + 1;
-        inline "JMP 11776";
+        physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+        [physicalSP - 1] = 10;
+        inline "JMP 11776";	
     endif;
     
     //Looking for a free page for allotment
@@ -95,9 +98,9 @@ if (cause == 0) then
             
             //Going to the Exit() Syscall.
             SP = SP + 1;
-            [SP] = 10;
-            SP = SP + 1;
-            inline "JMP 11776";
+            physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+            [physicalSP - 1] = 10;
+            inline "JMP 11776";	
         endif;
         
         //Sending Victim Page to the Swap Area
@@ -116,9 +119,9 @@ if (cause == 0) then
             
             //Going to the Exit() Syscall.
             SP = SP + 1;
-            [SP] = 10;
-            SP = SP + 1;
-            inline "JMP 11776";
+            physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+            [physicalSP - 1] = 10;
+            inline "JMP 11776";	
         endif;
         
         //Storing victim page number
@@ -150,15 +153,6 @@ if (cause == 0) then
     [PTBR + vpagenum * 2] = replacePage;
     [PTBR + vpagenum * 2 + 1] = "11";
     
-    //Setting the IP value for return
-    SP = SP + 1;
-    [SP] = ipaddr;
-    
-    SP = SP + 1;
-    [SP] = 10;
-    inline "JMP 11776";	
-    
-    halt;
     ireturn;
 else
     print("Exception!!");
@@ -190,10 +184,11 @@ else
     endif;
     
     print("-----");
+    
     //Going to the Exit() Syscall.
     SP = SP + 1;
-    [SP] = 10;
-    SP = SP + 1;
+    physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+    [physicalSP - 1] = 10;
     inline "JMP 11776";	
     
 endif;

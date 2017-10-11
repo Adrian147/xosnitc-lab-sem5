@@ -2,12 +2,26 @@ integer main()
 {   
     integer i;
 	integer pid;
+	print("Before Fork");
+	while (1 == 1) do
 	
-	    print("Before Fork");
 	    pid = Fork();
-	    print(pid);
-	    print("After Fork");
+	    
+	    if (pid == -1) then
+	        break;
+	    endif;
+	    
+	    if (pid == -2) then
+	        pid = Getpid();
+	        print(pid);
+	        while (1 == 1) do
+	            i = i;
+	        endwhile;
+	    endif;
 
+    endwhile;
+    
+    print("Before Fork");
     
     return 0;
 }

@@ -121,11 +121,11 @@ if (sysCallNo == 9) then
         j = currentPCB + 15 + i * 2;
         if([j] != -1) then
             //Reducing System Wide file Table Count
-            [FILE_TABLE + j * 2 + 1] = [FILE_TABLE + j * 2 + 1] - 1;
+            [FILE_TABLE + [j] * 2 + 1] = [FILE_TABLE + [j] * 2 + 1] - 1;
             
             //Invalidating entry if not in use
-            if ([FILE_TABLE + j * 2 + 1] == 0) then
-	            [FILE_TABLE + j * 2] = -1;
+            if ([FILE_TABLE + [j] * 2 + 1] == 0) then
+	            [FILE_TABLE + [j] * 2] = -1;
 	        endif;
 	        
 	        //Invalidating the PPOFT entry

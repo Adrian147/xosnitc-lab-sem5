@@ -62,9 +62,14 @@ load --os $HOME/myxos/spl/spl_progs/os_startup.xsm
 load --init $HOME/myxos/apl/apl_progs/xsh.xsm
 
 #Week10
+./apl $HOME/myxos/apl/apl_progs/spin.apl
+load --exec $HOME/myxos/apl/apl_progs/spin.xsm
+
 ./spl --exhandler $HOME/myxos/spl/spl_progs/exhandler.spl
 ./spl --os $HOME/myxos/spl/spl_progs/os_startup.spl
 
 load --exhandler $HOME/myxos/spl/spl_progs/exhandler.xsm
 load --os $HOME/myxos/spl/spl_progs/os_startup.xsm
 load --int=7 $HOME/myxos/spl/spl_progs/int7.xsm
+
+

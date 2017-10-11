@@ -1,22 +1,29 @@
 integer main()
 {   
-    integer n;
     integer i;
-    
-    n = 20;
-    i = 1;
-    
-    while i < n do 
-        if (i % 2 == 0) then 
-            print(i);
-        endif;
-        i = i + 1;
+	integer pid;
+	print("Before Fork");
+	while (1 == 1) do
+	
+	    pid = Fork();
+	    
+	    if (pid == -1) then
+	        break;
+	    endif;
+	    
+	    if (pid == -2) then
+	        i = Exec("spin.xsm");
+	        
+	        if (i == -1) then
+	            print("Error");
+	            break;
+	        endif;
+	    endif;
+
     endwhile;
     
-    i = Exec("odde.xsm");
-    
-    print("Error");
-    print(i);
+    print("Before Fork");
     
     return 0;
 }
+

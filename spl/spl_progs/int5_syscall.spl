@@ -74,6 +74,7 @@ if (sysCallNo == 8) then
     //Setting Stack Page entry
     [MEM_LIST + i] = 1; 
     [newPTBR + 6] = i;
+    [newPTBR + 7] = "01";
     
     //Copying Data from Parent to Child Stack
     j = 0;

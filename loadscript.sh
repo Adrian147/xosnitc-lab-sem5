@@ -50,7 +50,7 @@ load --exec $HOME/myxos/apl/apl_progs/odde.xsm
 ./apl $HOME/myxos/apl/apl_progs/odd.apl
 
 load --exec $HOME/myxos/apl/apl_progs/odd.xsm
-load --init $HOME/myxos/apl/apl_progs/odd.xsm
+load --init $HOME/myxos/apl/apl_progs/odde.xsm
 
 ./spl --os $HOME/myxos/spl/spl_progs/os_startup_exit.spl
 load --os $HOME/myxos/spl/spl_progs/os_startup.xsm

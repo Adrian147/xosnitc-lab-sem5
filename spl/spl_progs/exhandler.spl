@@ -153,6 +153,13 @@ if (cause == 0) then
     [PTBR + vpagenum * 2] = replacePage;
     [PTBR + vpagenum * 2 + 1] = "11";
     
+    //Setting the IP value to top of stack
+    SP = SP + 1;
+    physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+    [physicalSP] = ipaddr;
+    
+    print("-----");
+    
     ireturn;
 else
     print("Exception!!");

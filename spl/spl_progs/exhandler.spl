@@ -18,14 +18,16 @@ vpagenum = (EFR / 10) % 100;
 ipaddr = (EFR / 1000);
 
 if (cause == 0) then
-    print("Page 404");
-    print(ipaddr);
-    print(vpagenum);
+    //print("Page 404");
+    //print(ipaddr);
+    //print(vpagenum);
+    
     //Physical SP value
     physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512); 
 
     // Calculating PID
     currentPID = (PTBR - 1024) / 8;
+    //print(currentPID);
 
     // Calculating PCB entry for currentPID
     currentPCB = READY_LIST + 32 * currentPID;
@@ -58,8 +60,8 @@ if (cause == 0) then
         replacePage = i;
     else
         //Using Second Change Replacement
-        nextPID = currentPID + 1;
-        while(nextPID != currentPID) do
+        nextPID = (currentPID + 1) % 32;
+        while(1 == 1) do
             nextPTBR = PAGE_TABLE + 8 * nextPID;
             
             i = 0;
@@ -90,18 +92,6 @@ if (cause == 0) then
             
             nextPID = (nextPID + 1) % 32;
         endwhile;
-        
-        if (nextPID == currentPID) then
-            breakpoint;
-            print("No pages"); // Ever the case possible
-            //or run second chance again.
-            
-            //Going to the Exit() Syscall.
-            SP = SP + 1;
-            physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
-            [physicalSP - 1] = 10;
-            inline "JMP 11776";	
-        endif;
         
         //Sending Victim Page to the Swap Area
         i = 448;
@@ -136,6 +126,8 @@ if (cause == 0) then
         
         //Setting the page to invalid
         [nextPTBR + flag * 2  + 1] = "00";
+        
+        breakpoint;
     endif;
     
     //storing the required block to load into victim
@@ -158,7 +150,7 @@ if (cause == 0) then
     physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
     [physicalSP] = ipaddr;
     
-    print("-----");
+    //print("-----");
     
     ireturn;
 else

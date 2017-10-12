@@ -8,6 +8,10 @@ alias i S6;
 alias newPTBR S7;
 alias j S8; 
 alias childPSP S9;
+alias nextPID S10;
+alias nextPTBR S11;
+alias flag S12;
+alias replacePage S13;
 
 // Calculating the Physical SP address
 physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
@@ -63,18 +67,92 @@ if (sysCallNo == 8) then
         i = i + 1;
     endwhile;
     
-    // If adiquate free pages are not available 
-    // A victim page can be found to swap with tho
-    if (i == 64) then
-        print("No stackpg");
-        [physicalSP - 2] = -1;
-        ireturn;
+    //Checking if Second Chance is required
+    if (i != 64) then
+        //Setting Stack Page entry
+        [MEM_LIST + i] = 1; 
+        [newPTBR + 6] = i;
+        [newPTBR + 7] = "01";
+    else
+        // If adiquate free pages are not available 
+        // A victim page can be found to swap with tho
+        //Using Second Change Replacement
+        nextPID = (newPID + 1) % 32;
+        flag = -1;
+        while(1 == 1) do
+            nextPTBR = PAGE_TABLE + 8 * nextPID;
+            
+            i = 0;
+            // Running through the Page Table for Victim Page
+            while(i < 3) do
+                j = nextPTBR + i * 2;
+                //Checking if page used
+                if ([j] != -1)then
+                    //Checking if second chanced and not shared 
+                    if ([j + 1] == "01" && [MEM_LIST + [j]] == 1) then
+                        flag = i;
+                        break;
+                    endif;
+                    
+                    //Setting the Second Chance state marker
+                    if ([j + 1] == "11") then
+                        [j + 1] = "01";
+                    endif;
+                endif;
+                
+                i = i + 1;
+            endwhile;
+            
+            //If a victim page is found
+            if(flag != -1) then
+                break;
+            endif;
+            
+            nextPID = (nextPID + 1) % 32;
+        endwhile;
+        
+        
+        //Sending Victim Page to the Swap Area
+        i = 448;
+        while (i < 512) do
+            if ([DISK_LIST + i] == 0) then
+                break;
+            endif;
+        
+            i = i + 1;
+        endwhile;
+        
+        //If no swap block is found
+        if (i == 512) then
+            print("No pages in SWAP");
+            
+            //Going to the Exit() Syscall.
+            SP = SP + 1;
+            physicalSP = ([PTBR + 2 * (SP / 512)] * 512) + (SP % 512);
+            [physicalSP - 1] = 10;
+            inline "JMP 11776";	
+        endif;
+        
+        //Storing victim page number
+        replacePage = [nextPTBR + flag * 2];
+        
+        //Swapping out the block
+        store(replacePage, i);
+        [DISK_LIST + i] = 1;
+        
+        //Setting entry to SWAP index
+        [nextPTBR + flag * 2] = i;
+        
+        //Setting the page to invalid
+        [nextPTBR + flag * 2  + 1] = "00";
+         
+        //Setting the found page to the Stack
+        [newPTBR + 6] = replacePage;
+        [newPTBR + 7] = "01";
+        
+        breakpoint;
     endif;
     
-    //Setting Stack Page entry
-    [MEM_LIST + i] = 1; 
-    [newPTBR + 6] = i;
-    [newPTBR + 7] = "01";
     
     //Copying Data from Parent to Child Stack
     j = 0;

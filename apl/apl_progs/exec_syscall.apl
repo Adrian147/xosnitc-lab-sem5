@@ -22,7 +22,7 @@ integer main()
 
     endwhile;
     
-    print("Before Fork");
+    print("After Fork");
     
     return 0;
 }

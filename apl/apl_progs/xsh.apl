@@ -12,7 +12,8 @@ integer main()
         print("Enter Choice");
         print("1.Exec file");
         print("2.Send Signal");
-        print("3.Exit");
+        print("3.Wait");
+        print("4.Exit");
         
         read(choice);
         print("-----");
@@ -38,6 +39,9 @@ integer main()
             //Using exec in the child process
             if (pid == -2) then
                 print("Running...");
+                pid = Getpid();
+                print(pid);
+                print("--------");
                 status = Exec(filename);
                 
                 //if exec failed
@@ -73,6 +77,21 @@ integer main()
         endif;
         
         if (choice == 3) then
+            // Process to wait for
+            print("Enter PID");
+            read(pid);
+            print("-----");
+            
+            status = Wait(pid);
+                
+            if (status == -1) then
+                print("wait failed");
+            else
+                print("completed");
+            endif;
+        endif;   
+        
+        if (choice == 4) then
             break;
         endif;
     endwhile;

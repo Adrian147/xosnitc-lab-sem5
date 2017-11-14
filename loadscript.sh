@@ -72,4 +72,31 @@ load --exhandler $HOME/myxos/spl/spl_progs/exhandler.xsm
 load --os $HOME/myxos/spl/spl_progs/os_startup.xsm
 load --int=7 $HOME/myxos/spl/spl_progs/int7.xsm
 
+# New Loadout
+./spl --os $HOME/myxos/spl/spl_progs/os_startup.spl
+./spl --int=1 $HOME/myxos/spl/spl_progs/int1_syscall.spl
+./spl --int=2 $HOME/myxos/spl/spl_progs/int2_syscall.spl
+./spl --int=3 $HOME/myxos/spl/spl_progs/int3_syscall.spl
+./spl --int=4 $HOME/myxos/spl/spl_progs/int4_syscall.spl
+./spl --int=5 $HOME/myxos/spl/spl_progs/int5_syscall.spl
+./spl --int=6 $HOME/myxos/spl/spl_progs/int6_syscall.spl
+./spl --int=7 $HOME/myxos/spl/spl_progs/int7_syscall.spl
+./spl --int=timer $HOME/myxos/spl/spl_progs/timer.spl
+./spl --exhandler $HOME/myxos/spl/spl_progs/exhandler.spl
 
+
+load --os $HOME/myxos/spl/spl_progs/os_startup.xsm
+load --int=1 $HOME/myxos/spl/spl_progs/int1.xsm
+load --int=2 $HOME/myxos/spl/spl_progs/int2.xsm
+load --int=3 $HOME/myxos/spl/spl_progs/int3.xsm
+load --int=4 $HOME/myxos/spl/spl_progs/int4.xsm
+load --int=5 $HOME/myxos/spl/spl_progs/int5.xsm
+load --int=6 $HOME/myxos/spl/spl_progs/int6.xsm
+load --int=7 $HOME/myxos/spl/spl_progs/int7.xsm
+load --int=timer $HOME/myxos/spl/spl_progs/timer.xsm
+load --exhandler $HOME/myxos/spl/spl_progs/exhandler.xsm
+
+
+load --exec ./apl $HOME/myxos/apl/apl_progs/s10test1.xsm
+rm --exec s10t2b.xsm
+load --exec ./apl $HOME/myxos/apl/apl_progs/s10t2b.xsm
